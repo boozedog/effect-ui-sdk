@@ -25,14 +25,14 @@ export const Masthead = <Msg>(h: Html.H<Msg>, view: ViewName, only: ReadonlyArra
     h.p.class("lede").children(
       view === "sink"
         ? "One tile per UI SDK entry. The first batch is a live Effect UI round-trip. Every other entry is a gap: its name, how many tags it has, and a link to that entry in the catalog."
-        : "Every UI SDK web component as a typed Effect UI Html.customElement binding. This view is the generated catalog. The sink holds the live tiles."
+        : "Every UI SDK web component as a typed Effect UI Html.customElement binding. This view is the generated catalog. The kitchen sink holds the live tiles."
     ),
     h.p.children(
       h.a.attr("href", REPO_URL).children("github.com/boozedog/effect-ui-sdk")
     ),
     h.nav.attr("aria-label", "Views").class("view-nav").children(
       viewLink(h, "catalog", "Catalog", view, only),
-      viewLink(h, "sink", "Sink", view, only)
+      viewLink(h, "sink", "Kitchen Sink", view, only)
     )
   )
 
