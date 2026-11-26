@@ -1,0 +1,71 @@
+{
+  "name": "@boozedog/effect-ui-sdk",
+  "version": "0.0.0",
+  "description": "UI SDK's web components as typed Effect UI bindings, generated from the UISDK manifest.",
+  "keywords": [
+    "effect",
+    "effect-ui",
+    "ui-sdk",
+    "web-components",
+    "custom-elements",
+    "bindings"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "private": true,
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/boozedog/effect-ui-sdk.git",
+    "directory": "packages/effect-ui-sdk"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./agent": "./src/agent.ts",
+    "./testing": "./src/testing.ts",
+    "./observe": "./src/observe.ts",
+    "./shortcuts": "./src/shortcuts.ts",
+    "./catalog": "./src/catalog.ts",
+    "./*": "./src/entries/*.ts",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md",
+    "LICENSES"
+  ],
+  "sideEffects": [
+    "./src/entries/*.ts",
+    "./src/index.ts"
+  ],
+  "scripts": {
+    "generate": "node scripts/generate.mjs",
+    "check:generated": "node scripts/generate.mjs --check",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "prepack": "cp ../../LICENSE . && cp ../../THIRD_PARTY_NOTICES.md . && cp -r ../../LICENSES LICENSES"
+  },
+  "dependencies": {
+    "@ui-sdk/web": "0.1.0-beta.17"
+  },
+  "peerDependencies": {
+    "@effect/ui": "https://pkg.pr.new/Effect-TS/ui/@effect/ui@87a704b",
+    "@ui-sdk/core": "0.1.0-beta.17",
+    "effect": "4.1.6"
+  },
+  "devDependencies": {
+    "@effect/ui": "https://pkg.pr.new/Effect-TS/ui/@effect/ui@87a704b",
+    "@types/node": "24.10.1",
+    "@ui-sdk/core": "0.1.0-beta.17",
+    "effect": "4.1.6",
+    "typescript": "5.9.3",
+    "vitest": "5.1.2"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

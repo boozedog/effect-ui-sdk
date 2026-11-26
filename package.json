@@ -1,0 +1,22 @@
+{
+  "name": "effect-ui-sdk-workspace",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.25.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "generate": "pnpm --filter @boozedog/effect-ui-sdk run generate",
+    "check:generated": "pnpm --filter @boozedog/effect-ui-sdk run check:generated",
+    "typecheck": "pnpm -r run --if-present typecheck",
+    "test": "pnpm --filter @boozedog/effect-ui-sdk run test",
+    "build": "pnpm --filter site run build",
+    "dev": "pnpm --filter site run dev",
+    "check": "pnpm run check:generated && pnpm run typecheck && pnpm run test"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1",
+    "typescript": "5.9.3"
+  }
+}

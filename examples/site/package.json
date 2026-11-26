@@ -1,0 +1,24 @@
+{
+  "name": "site",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@boozedog/effect-ui-sdk": "workspace:*",
+    "@effect/ui": "https://pkg.pr.new/Effect-TS/ui/@effect/ui@87a704b",
+    "@ui-sdk/core": "0.1.0-beta.17",
+    "@ui-sdk/web": "0.1.0-beta.17",
+    "effect": "4.1.6"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1",
+    "typescript": "5.9.3",
+    "vite": "8.3.8"
+  }
+}
