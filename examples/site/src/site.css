@@ -50,7 +50,7 @@ body {
   font-size: 0.8125rem;
 }
 
-/* Catalog and Sink. Query links, so `only` survives the switch. */
+/* Catalog and Kitchen Sink. Query links, so `only` survives the switch. */
 .view-nav {
   display: flex;
   flex-wrap: wrap;
