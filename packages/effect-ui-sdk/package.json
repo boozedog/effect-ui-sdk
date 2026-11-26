@@ -2,6 +2,7 @@
   "name": "@boozedog/effect-ui-sdk",
   "version": "0.0.0",
   "description": "UI SDK's web components as typed Effect UI bindings, generated from the UISDK manifest.",
+  "homepage": "https://boozedog.github.io/effect-ui-sdk/",
   "keywords": [
     "effect",
     "effect-ui",

@@ -50,12 +50,20 @@ body {
   font-size: 0.8125rem;
 }
 
-/* The three composites sit side by side, and stack on a narrow screen. */
-.demos {
+/* Catalog and Sink. Query links, so `only` survives the switch. */
+.view-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin: 0 0 1.5rem;
+}
+
+/* One tile per entry. The components keep the look from web.css. */
+.sink {
   display: grid;
   gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
-  margin: 2rem 0;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+  margin: 0 0 2rem;
 }
 
 .panel {
@@ -90,25 +98,9 @@ body {
   margin: 0;
 }
 
-.toggle button,
-.dialog button {
-  font: inherit;
-  padding: 0.25rem 0.75rem;
-  border: 1px solid var(--page-rule);
-  border-radius: 0.375rem;
-  background: transparent;
-  color: inherit;
-}
-
-.dialog {
-  display: grid;
-  gap: 0.5rem;
-  justify-items: start;
-}
-
 /* The catalog: one group per entry, each with its tags. */
 .catalog {
-  margin-top: 2.5rem;
+  margin-top: 0;
 }
 
 .filters {

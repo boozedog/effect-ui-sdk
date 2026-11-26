@@ -1,0 +1,48 @@
+import { UiSchema } from "@effect/ui"
+import { Html } from "@effect/ui/html"
+import { Schema } from "effect"
+import * as Switch from "@boozedog/effect-ui-sdk/switch"
+import { reported, tile } from "./shell"
+
+const Message = UiSchema.TaggedEnum({
+  ChangedChecked: {
+    checked: Schema.Boolean,
+    reason: Schema.String,
+    source: Schema.String,
+  },
+})
+
+const Model = Schema.Struct({
+  checked: Schema.Boolean,
+  reason: Schema.String,
+  source: Schema.String,
+})
+
+const Definition = Html.component({
+  name: "SinkSwitch",
+  model: Model,
+  message: Message,
+}).make({
+  init: () => ({ checked: false, reason: "", source: "" }),
+  update: {
+    ChangedChecked: ($, { checked, reason, source }) => $.evolve({ checked, reason, source }),
+  },
+  view: (h, model) =>
+    tile(
+      h,
+      "switch",
+      "checked is the element's property. The label sits outside ui-switch. checkedchange carries the value the element moved to.",
+      `checked ${model.checked}; ${reported(model.reason, model.source)}`,
+      h.label.children(
+        Switch.Root(h)
+          .checked(model.checked)
+          .on("checkedchange", ({ value, reason, source }) =>
+            Message.ChangedChecked({ checked: value, reason, source })
+          )
+          .children(Switch.Thumb(h)),
+        "Airplane mode"
+      )
+    ),
+})
+
+export { Definition as SwitchTile }
