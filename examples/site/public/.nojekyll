@@ -1,0 +1,3 @@
+/* The page turns GitHub Pages into a static host without Jekyll processing.
+   Harmless locally, and it keeps every file, including ones starting with `_`,
+   in the deployed artifact. */
