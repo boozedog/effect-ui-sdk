@@ -1,5 +1,5 @@
 // The catalog page. It lists every generated binding and holds no tile state.
-// The live round-trips live on the sink, one child component each.
+// The live round-trips live on the kitchen sink, one child component each.
 import { Html } from "@effect/ui/html"
 import { Schema } from "effect"
 import { entries, uiSdkVersion, type Binding, type Entry } from "@boozedog/effect-ui-sdk/catalog"

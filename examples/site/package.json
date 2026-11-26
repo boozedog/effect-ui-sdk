@@ -12,6 +12,8 @@
   "dependencies": {
     "@boozedog/effect-ui-sdk": "workspace:*",
     "@effect/ui": "https://pkg.pr.new/Effect-TS/ui/@effect/ui@87a704b",
+    "@effect/ui-devtools": "https://pkg.pr.new/Effect-TS/ui/@effect/ui-devtools@87a704b",
+    "@effect/ui-kit": "https://pkg.pr.new/Effect-TS/ui/@effect/ui-kit@87a704b",
     "@ui-sdk/core": "0.1.0-beta.17",
     "@ui-sdk/web": "0.1.0-beta.17",
     "effect": "4.1.6"
