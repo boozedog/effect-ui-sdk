@@ -2,6 +2,7 @@ import { UiSchema } from "@effect/ui"
 import { Html } from "@effect/ui/html"
 import { Schema } from "effect"
 import * as Switch from "@boozedog/effect-ui-sdk/switch"
+import { classes, face, Props } from "./face"
 import { reported, tile } from "./shell"
 
 const Message = UiSchema.TaggedEnum({
@@ -20,6 +21,7 @@ const Model = Schema.Struct({
 
 const Definition = Html.component({
   name: "SinkSwitch",
+  props: Props,
   model: Model,
   message: Message,
 }).make({
@@ -35,11 +37,12 @@ const Definition = Html.component({
       `checked ${model.checked}; ${reported(model.reason, model.source)}`,
       h.label.children(
         Switch.Root(h)
+          .class(face(h.props.daisy, classes.switchRoot))
           .checked(model.checked)
           .on("checkedchange", ({ value, reason, source }) =>
             Message.ChangedChecked({ checked: value, reason, source })
           )
-          .children(Switch.Thumb(h)),
+          .children(Switch.Thumb(h).class(face(h.props.daisy, classes.switchThumb))),
         "Airplane mode"
       )
     ),

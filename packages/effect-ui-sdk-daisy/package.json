@@ -1,0 +1,56 @@
+{
+  "name": "@boozedog/effect-ui-sdk-daisy",
+  "version": "0.0.0",
+  "description": "Optional DaisyUI theme for @boozedog/effect-ui-sdk. The glue package does not depend on this.",
+  "homepage": "https://boozedog.github.io/effect-ui-sdk/?style=daisy",
+  "keywords": [
+    "effect",
+    "effect-ui",
+    "ui-sdk",
+    "daisyui",
+    "tailwindcss"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "private": true,
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/boozedog/effect-ui-sdk.git",
+    "directory": "packages/effect-ui-sdk-daisy"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./classes": "./src/classes.ts",
+    "./theme.css": "./src/theme.css",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": [
+    "./src/theme.css"
+  ],
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "prepack": "cp ../../LICENSE ."
+  },
+  "dependencies": {
+    "daisyui": "5.8.3",
+    "tailwindcss": "4.3.5"
+  },
+  "peerDependencies": {
+    "@boozedog/effect-ui-sdk": "workspace:*"
+  },
+  "devDependencies": {
+    "@boozedog/effect-ui-sdk": "workspace:*",
+    "typescript": "5.9.3"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

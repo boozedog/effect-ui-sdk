@@ -2,6 +2,7 @@ import { UiSchema } from "@effect/ui"
 import { Html } from "@effect/ui/html"
 import { Schema } from "effect"
 import * as Tooltip from "@boozedog/effect-ui-sdk/tooltip"
+import { classes, face, Props } from "./face"
 import { reported, tile } from "./shell"
 
 const Message = UiSchema.TaggedEnum({
@@ -20,6 +21,7 @@ const Model = Schema.Struct({
 
 const Definition = Html.component({
   name: "SinkTooltip",
+  props: Props,
   model: Model,
   message: Message,
 }).make({
@@ -40,8 +42,10 @@ const Definition = Html.component({
           Message.ChangedOpen({ open: value, reason, source })
         )
         .children(
-          Tooltip.Trigger(h).children(h.button.attr("type", "button").children("Hint")),
-          Tooltip.Content(h).children("Add to library")
+          Tooltip.Trigger(h).children(
+            h.button.attr("type", "button").class(face(h.props.daisy, classes.button)).children("Hint")
+          ),
+          Tooltip.Content(h).class(face(h.props.daisy, classes.popup)).children("Add to library")
         )
     ),
 })

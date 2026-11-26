@@ -4,7 +4,13 @@ import { Html } from "@effect/ui/html"
 import { Schema } from "effect"
 import { entries, uiSdkVersion, type Binding, type Entry } from "@boozedog/effect-ui-sdk/catalog"
 import { Foot, Masthead } from "./chrome"
-import { href, matches } from "./query"
+import { href, matches, type Query } from "./query"
+
+const PageProps = Schema.Struct({
+  only: Schema.Array(Schema.String),
+  style: Schema.Literals(["uisdk", "daisy"]),
+  theme: Schema.NullOr(Schema.Literals(["light", "dark", "cupcake"])),
+})
 
 const tagsOf = (group: Entry, only: ReadonlyArray<string>): ReadonlyArray<Binding> =>
   only.length === 0 || only.includes(group.entry) || only.includes(group.namespace.toLowerCase())
@@ -13,7 +19,11 @@ const tagsOf = (group: Entry, only: ReadonlyArray<string>): ReadonlyArray<Bindin
 
 const pathOf = (row: Binding): string => `${row.namespace}.${row.name}`
 
-const CatalogSection = (h: Html.H<never>, only: ReadonlyArray<string>) => {
+const catalogHref = (query: Pick<Query, "style" | "theme">, only: ReadonlyArray<string>): string =>
+  href("catalog", { only, style: query.style, theme: query.theme })
+
+const CatalogSection = (h: Html.H<never>, query: Pick<Query, "only" | "style" | "theme">) => {
+  const only = query.only
   const groups = entries.filter((group) => matches(group, only))
   const total = groups.reduce((count, group) => count + tagsOf(group, only).length, 0)
 
@@ -26,10 +36,10 @@ const CatalogSection = (h: Html.H<never>, only: ReadonlyArray<string>) => {
       .attr("aria-label", "Filter the catalog by entry")
       .class("filters")
       .children(
-        h.a.attr("href", href("catalog", [])).class("chip", only.length === 0 && "chip-current").children("all"),
+        h.a.attr("href", catalogHref(query, [])).class("chip", only.length === 0 && "chip-current").children("all"),
         ...entries.map((group) =>
           h.a
-            .attr("href", href("catalog", [group.entry]))
+            .attr("href", catalogHref(query, [group.entry]))
             .class("chip", only.includes(group.entry) && "chip-current")
             .children(group.entry)
         )
@@ -41,7 +51,7 @@ const CatalogSection = (h: Html.H<never>, only: ReadonlyArray<string>) => {
       const tags = tagsOf(group, only)
       return h.section.class("entry").children(
         h.h3.children(
-          h.a.attr("href", href("catalog", [group.entry])).children(group.namespace),
+          h.a.attr("href", catalogHref(query, [group.entry])).children(group.namespace),
           h.span.class("entry-path mono").children(`@boozedog/effect-ui-sdk/${group.entry}`)
         ),
         h.ul.class("tags").children(
@@ -62,7 +72,7 @@ const CatalogSection = (h: Html.H<never>, only: ReadonlyArray<string>) => {
 
 const Definition = Html.component({
   name: "CatalogPage",
-  props: Schema.Struct({ only: Schema.Array(Schema.String) }),
+  props: PageProps,
   model: Schema.Struct({}),
   message: Schema.Never,
 }).make({
@@ -70,8 +80,8 @@ const Definition = Html.component({
   update: ($) => $,
   view: (h) =>
     h.div.class("page").children(
-      Masthead(h, "catalog", h.props.only),
-      h.main.children(CatalogSection(h, h.props.only)),
+      Masthead(h, "catalog", h.props),
+      h.main.children(CatalogSection(h, h.props)),
       Foot(h)
     ),
 })

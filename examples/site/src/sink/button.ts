@@ -4,6 +4,7 @@ import { UiSchema } from "@effect/ui"
 import { Html } from "@effect/ui/html"
 import { Schema } from "effect"
 import * as Button from "@boozedog/effect-ui-sdk/button"
+import { classes, face, Props } from "./face"
 import { tile } from "./shell"
 
 const Message = UiSchema.TaggedEnum({
@@ -16,6 +17,7 @@ const Model = Schema.Struct({
 
 const Definition = Html.component({
   name: "SinkButton",
+  props: Props,
   model: Model,
   message: Message,
 }).make({
@@ -30,7 +32,11 @@ const Definition = Html.component({
       "The binding declares no events, so the count is the inner button's click. The wrapper still supplies the pending and disabled behaviour.",
       `clicks ${model.clicks}`,
       Button.Root(h).children(
-        h.button.attr("type", "button").on("click", () => Message.Clicked()).children("Run action")
+        h.button
+          .attr("type", "button")
+          .class(face(h.props.daisy, classes.button))
+          .on("click", () => Message.Clicked())
+          .children("Run action")
       )
     ),
 })

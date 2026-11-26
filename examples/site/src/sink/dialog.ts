@@ -2,6 +2,7 @@ import { UiSchema } from "@effect/ui"
 import { Html } from "@effect/ui/html"
 import { Schema } from "effect"
 import * as Dialog from "@boozedog/effect-ui-sdk/dialog"
+import { classes, face, Props } from "./face"
 import { reported, tile } from "./shell"
 
 const Message = UiSchema.TaggedEnum({
@@ -20,6 +21,7 @@ const Model = Schema.Struct({
 
 const Definition = Html.component({
   name: "SinkDialog",
+  props: Props,
   model: Model,
   message: Message,
 }).make({
@@ -40,15 +42,25 @@ const Definition = Html.component({
         )
         .children(
           Dialog.Trigger(h).children(
-            h.button.attr("type", "button").children(model.open ? "Dialog is open" : "Open dialog")
+            h.button
+              .attr("type", "button")
+              .class(face(h.props.daisy, classes.button))
+              .children(model.open ? "Dialog is open" : "Open dialog")
           ),
-          Dialog.Content(h).children(
-            Dialog.Title(h).children("A bound dialog"),
-            h.p.children(
-              "Focus moves inside, the page behind is inert, and Escape asks the dialog to close."
-            ),
-            Dialog.Close(h).children(h.button.attr("type", "button").children("Close"))
-          )
+          Dialog.Content(h)
+            .class(face(h.props.daisy, classes.popup))
+            .children(
+              Dialog.Title(h).children("A bound dialog"),
+              h.p.children(
+                "Focus moves inside, the page behind is inert, and Escape asks the dialog to close."
+              ),
+              Dialog.Close(h).children(
+                h.button
+                  .attr("type", "button")
+                  .class(face(h.props.daisy, classes.button))
+                  .children("Close")
+              )
+            )
         )
     ),
 })

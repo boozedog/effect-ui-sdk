@@ -1,0 +1,227 @@
+/* UISDK injects behavior CSS into the `ui-sdk` layer. Declaring the layer
+   here, before Tailwind, lets the rules below beat that behavior CSS.
+   Do not load `@ui-sdk/core/web.css` with this file. The two themes fight. */
+@layer ui-sdk;
+@import "tailwindcss";
+@plugin "daisyui" {
+  themes: light --default, dark --prefersdark, cupcake;
+}
+
+/* Tailwind v4 drops classes it does not see. Scan the site and this package. */
+@source "../../../examples/site/src";
+@source ".";
+
+/*
+  Short bridge for the custom properties the styled parts actually read
+  (the same ones `web.css` uses for those parts). Not a map of every tag.
+  `--ui-icon` is set on the indicator, which is the part that masks with it.
+*/
+:root,
+[data-theme] {
+  --ui-background: var(--color-base-100);
+  --ui-foreground: var(--color-base-content);
+  --ui-primary: var(--color-primary);
+  --ui-primary-foreground: var(--color-primary-content);
+  --ui-muted: var(--color-base-200);
+  --ui-muted-foreground: color-mix(in oklch, var(--color-base-content) 62%, transparent);
+  --ui-border: var(--color-base-300);
+  --ui-input: var(--color-base-300);
+  --ui-radius: var(--radius-field, 0.5rem);
+  --ui-icon-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+  --ui-icon-minus: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M5 12h14'/%3E%3C/svg%3E");
+}
+
+/* `.btn` does not know `data-pressed` or `data-selected`. Those attributes
+   land on the inner button, which is the element the docs say to style. */
+button.btn[data-pressed],
+button.btn[data-selected] {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-primary-content);
+}
+
+button.btn[data-slot="accordion-trigger"] {
+  width: 100%;
+  justify-content: flex-start;
+}
+
+button.btn[data-slot="select-trigger"] {
+  min-width: 9rem;
+  justify-content: space-between;
+}
+
+.effect-ui-daisy-popup {
+  background: var(--color-base-100);
+  color: var(--color-base-content);
+  border: 1px solid var(--color-base-300);
+  border-radius: var(--radius-box, 1rem);
+  padding: 0.75rem 1rem;
+}
+
+[data-slot="dialog-content"].effect-ui-daisy-popup {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  width: min(28rem, calc(100% - 2rem));
+  height: fit-content;
+  max-height: calc(100dvh - 2rem);
+  margin: auto;
+  padding: 1.25rem 1.5rem;
+}
+
+[data-slot="tooltip-content"].effect-ui-daisy-popup {
+  padding: 0.25rem 0.5rem;
+}
+
+[data-slot="select-content"].effect-ui-daisy-popup,
+[data-slot="menu-content"].effect-ui-daisy-popup {
+  min-width: max(10rem, var(--anchor-width, 10rem));
+  padding: 0.25rem;
+}
+
+[data-slot="dialog-backdrop"] {
+  background: color-mix(in oklch, var(--color-base-content) 40%, transparent);
+}
+
+.effect-ui-daisy-item {
+  display: flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-field, 0.25rem);
+  cursor: default;
+}
+
+.effect-ui-daisy-item[data-highlighted],
+.effect-ui-daisy-item[data-selected] {
+  background: var(--color-base-200);
+}
+
+label:has(> .effect-ui-daisy-checkbox),
+label:has(> .effect-ui-daisy-switch) {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.effect-ui-daisy-checkbox {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  padding: 0;
+  border: 1px solid var(--ui-input);
+  border-radius: calc(var(--ui-radius) / 2);
+  background: var(--ui-background);
+  color: var(--ui-primary-foreground);
+  cursor: pointer;
+}
+
+.effect-ui-daisy-checkbox:is([data-checked], [data-indeterminate]) {
+  border-color: var(--ui-primary);
+  background: var(--ui-primary);
+}
+
+.effect-ui-daisy-checkbox-indicator {
+  --ui-icon: var(--ui-icon-check);
+  display: flex;
+  width: 0.75rem;
+  height: 0.75rem;
+  background: currentColor;
+  mask: var(--ui-icon) center / contain no-repeat;
+}
+
+.effect-ui-daisy-checkbox-indicator[data-unchecked] {
+  visibility: hidden;
+}
+
+.effect-ui-daisy-checkbox-indicator[data-indeterminate] {
+  --ui-icon: var(--ui-icon-minus);
+}
+
+.effect-ui-daisy-switch {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  width: 2rem;
+  height: 1.125rem;
+  padding: 2px;
+  border: 1px solid var(--ui-input);
+  border-radius: 999px;
+  background: var(--ui-muted);
+  cursor: pointer;
+}
+
+.effect-ui-daisy-switch[data-checked] {
+  border-color: var(--ui-primary);
+  background: var(--ui-primary);
+}
+
+.effect-ui-daisy-switch-thumb {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 999px;
+  background: var(--color-base-content);
+}
+
+.effect-ui-daisy-switch-thumb[data-checked] {
+  margin-inline-start: auto;
+  background: var(--ui-primary-foreground);
+}
+
+.effect-ui-daisy-slider {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  min-width: 12rem;
+}
+
+[data-slot="slider-control"] {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 1.25rem;
+}
+
+.effect-ui-daisy-slider-track {
+  width: 100%;
+  height: 0.25rem;
+  border-radius: 999px;
+  background: var(--ui-muted);
+}
+
+.effect-ui-daisy-slider-indicator {
+  border-radius: inherit;
+  background: var(--ui-primary);
+}
+
+.effect-ui-daisy-slider-thumb {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid var(--ui-primary);
+  border-radius: 999px;
+  background: var(--ui-background);
+}
+
+.effect-ui-daisy-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  border-bottom: 1px solid var(--ui-border);
+  padding-bottom: 0.25rem;
+}
+
+.effect-ui-daisy-panel {
+  color: var(--ui-muted-foreground);
+  padding-block: 0.25rem 0.5rem;
+}
+
+.effect-ui-daisy-checkbox:focus-visible,
+.effect-ui-daisy-switch:focus-visible,
+.effect-ui-daisy-slider-thumb:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}

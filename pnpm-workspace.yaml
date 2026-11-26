@@ -12,6 +12,7 @@ overrides:
 # stays exact and reproducible.
 minimumReleaseAgeExclude:
   - effect@4.1.6
+  - daisyui@5.8.3
 
 onlyBuiltDependencies:
   - esbuild

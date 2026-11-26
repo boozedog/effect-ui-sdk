@@ -5,6 +5,7 @@ import { UiSchema } from "@effect/ui"
 import { Html } from "@effect/ui/html"
 import { Schema } from "effect"
 import * as Select from "@boozedog/effect-ui-sdk/select"
+import { classes, face, Props } from "./face"
 import { reported, tile } from "./shell"
 
 const OPTIONS = [
@@ -40,6 +41,7 @@ const choiceOf = (value: unknown): string | null | undefined => {
 
 const Definition = Html.component({
   name: "SinkSelect",
+  props: Props,
   model: Model,
   message: Message,
 }).make({
@@ -67,15 +69,24 @@ const Definition = Html.component({
         )
         .children(
           Select.Trigger(h).children(
-            h.button.attr("type", "button").attr("aria-label", "Role").children(Select.Value(h))
+            h.button
+              .attr("type", "button")
+              .attr("aria-label", "Role")
+              .class(face(h.props.daisy, classes.button))
+              .children(Select.Value(h))
           ),
-          Select.Content(h).children(
-            Select.List(h).children(
-              ...OPTIONS.map((option) =>
-                Select.Item(h).value(option.value).children(option.label)
+          Select.Content(h)
+            .class(face(h.props.daisy, classes.popup))
+            .children(
+              Select.List(h).children(
+                ...OPTIONS.map((option) =>
+                  Select.Item(h)
+                    .value(option.value)
+                    .class(face(h.props.daisy, classes.item))
+                    .children(option.label)
+                )
               )
             )
-          )
         )
     ),
 })

@@ -70,3 +70,9 @@ it just isn't narrowed.
 - **Omitting a declared property resets it** to `""`, `false` or `null`.
 - **`api` and `controller` are not bound.** They are handles the element owns;
   a view writing one would fight the controller inside it.
+
+## Styling
+
+This package does not depend on a theme. `@boozedog/effect-ui-sdk-daisy` is an
+optional adapter in this repository. Skip it and the bindings stay unstyled by
+DaisyUI. Do not import that package from here.

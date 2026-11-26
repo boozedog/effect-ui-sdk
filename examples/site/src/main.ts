@@ -7,14 +7,33 @@ import { parseQuery } from "./query"
 import { SinkPage } from "./sink/page"
 
 // `?view=catalog` (the default) and `?view=sink` are the two pages. `?only=`
-// filters either one. Both are query strings, so the site needs no router
-// and GitHub Pages needs no 404 fallback: every URL is still `index.html`.
-// The inspector is the overlay only: no Vite plugin, and WebMCP dispatch stays off.
-const { view, only } = parseQuery(window.location.search)
-const Page = view === "sink" ? SinkPage : CatalogPage
+// filters either one. `?style=daisy` opts into the DaisyUI adapter, and
+// `?theme=` picks a daisy theme. All of them are query strings, so the site
+// needs no router and GitHub Pages needs no 404 fallback: every URL is still
+// `index.html`. The inspector is the overlay only: no Vite plugin, and WebMCP
+// dispatch stays off.
+//
+// `site.css` is page layout. The component theme is a separate chunk, loaded
+// before mount: `@ui-sdk/core/web.css` unless `style=daisy`, in which case
+// the daisy stylesheet. The default page does not request the daisy chunk.
+const query = parseQuery(window.location.search)
+const Page = query.view === "sink" ? SinkPage : CatalogPage
 
-const Main = BrowserHost.mount(Page, { only }, document.getElementById("app")!).pipe(
-  Layer.provide(DevTools.layer({ position: "BottomRight" }))
-)
+if (query.style === "daisy" && query.theme !== null) {
+  document.documentElement.dataset.theme = query.theme
+}
 
-Layer.launch(Main).pipe(Effect.runFork)
+const styles =
+  query.style === "daisy"
+    ? import("@boozedog/effect-ui-sdk-daisy/theme.css")
+    : import("@ui-sdk/core/web.css")
+
+styles.then(() => {
+  const Main = BrowserHost.mount(
+    Page,
+    { only: query.only, style: query.style, theme: query.theme },
+    document.getElementById("app")!
+  ).pipe(Layer.provide(DevTools.layer({ position: "BottomRight" })))
+
+  Layer.launch(Main).pipe(Effect.runFork)
+})
