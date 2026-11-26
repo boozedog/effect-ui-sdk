@@ -2,6 +2,7 @@ import { UiSchema } from "@effect/ui"
 import { Html } from "@effect/ui/html"
 import { Schema } from "effect"
 import * as Tabs from "@boozedog/effect-ui-sdk/tabs"
+import { classes, face, Props } from "./face"
 import { reported, tile } from "./shell"
 
 const TAB_IDS = ["overview", "properties", "events"] as const
@@ -22,6 +23,7 @@ const Model = Schema.Struct({
 
 const Definition = Html.component({
   name: "SinkTabs",
+  props: Props,
   model: Model,
   message: Message,
 }).make({
@@ -45,14 +47,25 @@ const Definition = Html.component({
         )
         .children(
           Tabs.List(h)
+            .class(face(h.props.daisy, classes.tabsList))
             .attr("aria-label", "A bound tabs example")
             .children(
               ...TAB_IDS.map((id) =>
-                Tabs.Tab(h).value(id).children(h.button.attr("type", "button").children(id))
+                Tabs.Tab(h)
+                  .value(id)
+                  .children(
+                    h.button
+                      .attr("type", "button")
+                      .class(face(h.props.daisy, classes.button))
+                      .children(id)
+                  )
               )
             ),
           ...TAB_IDS.map((id) =>
-            Tabs.Panel(h).value(id).children(h.p.children(`The ${id} panel.`))
+            Tabs.Panel(h)
+              .value(id)
+              .class(face(h.props.daisy, classes.panel))
+              .children(h.p.children(`The ${id} panel.`))
           )
         )
     ),

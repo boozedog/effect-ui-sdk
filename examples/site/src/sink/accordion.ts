@@ -3,6 +3,7 @@ import { UiSchema } from "@effect/ui"
 import { Html } from "@effect/ui/html"
 import { Schema } from "effect"
 import * as Accordion from "@boozedog/effect-ui-sdk/accordion"
+import { classes, face, Props } from "./face"
 import { reported, tile } from "./shell"
 
 const ITEMS = [
@@ -26,6 +27,7 @@ const Model = Schema.Struct({
 
 const Definition = Html.component({
   name: "SinkAccordion",
+  props: Props,
   model: Model,
   message: Message,
 }).make({
@@ -53,10 +55,15 @@ const Definition = Html.component({
               .children(
                 Accordion.Header(h).children(
                   Accordion.Trigger(h).children(
-                    h.button.attr("type", "button").children(item.label)
+                    h.button
+                      .attr("type", "button")
+                      .class(face(h.props.daisy, classes.button))
+                      .children(item.label)
                   )
                 ),
-                Accordion.Panel(h).children(h.p.children(item.body))
+                Accordion.Panel(h)
+                  .class(face(h.props.daisy, classes.panel))
+                  .children(h.p.children(item.body))
               )
           )
         )

@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@boozedog/effect-ui-sdk": "workspace:*",
+    "@boozedog/effect-ui-sdk-daisy": "workspace:*",
     "@effect/ui": "https://pkg.pr.new/Effect-TS/ui/@effect/ui@87a704b",
     "@effect/ui-devtools": "https://pkg.pr.new/Effect-TS/ui/@effect/ui-devtools@87a704b",
     "@effect/ui-kit": "https://pkg.pr.new/Effect-TS/ui/@effect/ui-kit@87a704b",
@@ -19,6 +20,7 @@
     "effect": "4.1.6"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "4.3.5",
     "@types/node": "24.10.1",
     "typescript": "5.9.3",
     "vite": "8.3.8"

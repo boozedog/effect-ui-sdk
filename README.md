@@ -26,12 +26,14 @@ Homepage: [https://boozedog.github.io/effect-ui-sdk/](https://boozedog.github.io
 
 - [Catalog](https://boozedog.github.io/effect-ui-sdk/?view=catalog) lists every binding. The homepage with no query is the same page.
 - [Kitchen Sink](https://boozedog.github.io/effect-ui-sdk/?view=sink) shows one tile per entry. `?only=` filters either view.
+- [DaisyUI](https://boozedog.github.io/effect-ui-sdk/?style=daisy) is an optional theme. `?style=daisy` opts in. Leaving it off keeps the UISDK `web.css` look. The bindings package does not depend on it.
 
 ## Packages
 
 | Path | What it is |
 | --- | --- |
 | `packages/effect-ui-sdk` | `@boozedog/effect-ui-sdk`, the bindings |
+| `packages/effect-ui-sdk-daisy` | `@boozedog/effect-ui-sdk-daisy`, optional DaisyUI theme |
 | `examples/site` | The catalog and kitchen sink site, built with Vite |
 
 ## Working in the repository

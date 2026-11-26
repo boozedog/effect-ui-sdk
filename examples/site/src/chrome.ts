@@ -1,8 +1,9 @@
 // Shared page chrome. Both views are the same document, so the nav is two
-// anchors. In-site links are query strings, which keep the Pages base path.
-// The repository link is absolute and does not use `import.meta.env.BASE_URL`.
+// anchors plus a link that toggles the DaisyUI adapter. In-site links are
+// query strings, which keep the Pages base path. The repository link is
+// absolute and does not use `import.meta.env.BASE_URL`.
 import type { Html } from "@effect/ui/html"
-import { href, type ViewName } from "./query"
+import { href, styleHref, type Query, type ViewName } from "./query"
 
 export const REPO_URL = "https://github.com/boozedog/effect-ui-sdk"
 
@@ -11,15 +12,15 @@ const viewLink = <Msg>(
   name: ViewName,
   label: string,
   current: ViewName,
-  only: ReadonlyArray<string>
+  query: Pick<Query, "only" | "style" | "theme">
 ) =>
   h.a
-    .attr("href", href(name, only))
+    .attr("href", href(name, query))
     .attr("aria-current", name === current ? "page" : "false")
     .class("chip", name === current && "chip-current")
     .children(label)
 
-export const Masthead = <Msg>(h: Html.H<Msg>, view: ViewName, only: ReadonlyArray<string>) =>
+export const Masthead = <Msg>(h: Html.H<Msg>, view: ViewName, query: Pick<Query, "only" | "style" | "theme">) =>
   h.header.class("masthead").children(
     h.h1.children("Effect UI SDK bindings"),
     h.p.class("lede").children(
@@ -31,8 +32,12 @@ export const Masthead = <Msg>(h: Html.H<Msg>, view: ViewName, only: ReadonlyArra
       h.a.attr("href", REPO_URL).children("github.com/boozedog/effect-ui-sdk")
     ),
     h.nav.attr("aria-label", "Views").class("view-nav").children(
-      viewLink(h, "catalog", "Catalog", view, only),
-      viewLink(h, "sink", "Kitchen Sink", view, only)
+      viewLink(h, "catalog", "Catalog", view, query),
+      viewLink(h, "sink", "Kitchen Sink", view, query),
+      h.a
+        .attr("href", styleHref(view, query))
+        .class("chip")
+        .children(query.style === "daisy" ? "UISDK theme" : "Daisy")
     )
   )
 

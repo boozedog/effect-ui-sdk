@@ -5,6 +5,7 @@ import { UiSchema } from "@effect/ui"
 import { Html } from "@effect/ui/html"
 import { Schema } from "effect"
 import * as Menu from "@boozedog/effect-ui-sdk/menu"
+import { classes, face, Props } from "./face"
 import { reported, tile } from "./shell"
 
 const ITEMS = ["rename", "duplicate", "archive"] as const
@@ -29,6 +30,7 @@ const Model = Schema.Struct({
 
 const Definition = Html.component({
   name: "SinkMenu",
+  props: Props,
   model: Model,
   message: Message,
 }).make({
@@ -49,15 +51,20 @@ const Definition = Html.component({
           Message.ChangedOpen({ open: value, reason, source })
         )
         .children(
-          Menu.Trigger(h).children(h.button.attr("type", "button").children("Actions")),
-          Menu.Content(h).children(
-            ...ITEMS.map((item) =>
-              Menu.Item(h)
-                .value(item)
-                .on("select", () => Message.Chose({ value: item }))
-                .children(item)
+          Menu.Trigger(h).children(
+            h.button.attr("type", "button").class(face(h.props.daisy, classes.button)).children("Actions")
+          ),
+          Menu.Content(h)
+            .class(face(h.props.daisy, classes.popup))
+            .children(
+              ...ITEMS.map((item) =>
+                Menu.Item(h)
+                  .value(item)
+                  .class(face(h.props.daisy, classes.item))
+                  .on("select", () => Message.Chose({ value: item }))
+                  .children(item)
+              )
             )
-          )
         )
     ),
 })

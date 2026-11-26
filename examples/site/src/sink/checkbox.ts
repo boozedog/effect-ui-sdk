@@ -2,6 +2,7 @@ import { UiSchema } from "@effect/ui"
 import { Html } from "@effect/ui/html"
 import { Schema } from "effect"
 import * as Checkbox from "@boozedog/effect-ui-sdk/checkbox"
+import { classes, face, Props } from "./face"
 import { reported, tile } from "./shell"
 
 const Checked = Schema.Union([Schema.Boolean, Schema.Literal("indeterminate")])
@@ -22,6 +23,7 @@ const Model = Schema.Struct({
 
 const Definition = Html.component({
   name: "SinkCheckbox",
+  props: Props,
   model: Model,
   message: Message,
 }).make({
@@ -37,11 +39,12 @@ const Definition = Html.component({
       `checked ${model.checked}; ${reported(model.reason, model.source)}`,
       h.label.children(
         Checkbox.Root(h)
+          .class(face(h.props.daisy, classes.checkbox))
           .checked(model.checked)
           .on("checkedchange", ({ value, reason, source }) =>
             Message.ChangedChecked({ checked: value, reason, source })
           )
-          .children(Checkbox.Indicator(h)),
+          .children(Checkbox.Indicator(h).class(face(h.props.daisy, classes.checkboxIndicator))),
         "Accept terms"
       )
     ),

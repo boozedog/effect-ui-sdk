@@ -3,7 +3,7 @@
 import type { View } from "@effect/ui"
 import type { Html } from "@effect/ui/html"
 import type { Entry } from "@boozedog/effect-ui-sdk/catalog"
-import { href } from "../query"
+import { href, type Query } from "../query"
 
 export const reported = (reason: string, source: string): string =>
   reason === "" ? "no event yet" : `reason "${reason}", source "${source}"`
@@ -30,7 +30,7 @@ export const tile = <Msg>(
       )
     )
 
-export const gap = <Msg>(h: Html.H<Msg>, group: Entry) =>
+export const gap = <Msg>(h: Html.H<Msg>, group: Entry, query: Pick<Query, "style" | "theme">) =>
   h.article
     .class("panel", "tile")
     .attr("id", `sink-${group.entry}`)
@@ -41,5 +41,7 @@ export const gap = <Msg>(h: Html.H<Msg>, group: Entry) =>
       h.p.class("lede").children(
         `${group.tags.length} tag${group.tags.length === 1 ? "" : "s"}`
       ),
-      h.a.attr("href", href("catalog", [group.entry])).children("Open in the catalog")
+      h.a
+        .attr("href", href("catalog", { only: [group.entry], style: query.style, theme: query.theme }))
+        .children("Open in the catalog")
     )

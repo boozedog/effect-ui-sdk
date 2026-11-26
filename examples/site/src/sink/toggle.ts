@@ -2,6 +2,7 @@ import { UiSchema } from "@effect/ui"
 import { Html } from "@effect/ui/html"
 import { Schema } from "effect"
 import * as Toggle from "@boozedog/effect-ui-sdk/toggle"
+import { classes, face, Props } from "./face"
 import { reported, tile } from "./shell"
 
 const Message = UiSchema.TaggedEnum({
@@ -20,6 +21,7 @@ const Model = Schema.Struct({
 
 const Definition = Html.component({
   name: "SinkToggle",
+  props: Props,
   model: Model,
   message: Message,
 }).make({
@@ -38,7 +40,12 @@ const Definition = Html.component({
         .on("pressedchange", ({ value, reason, source }) =>
           Message.ChangedPressed({ pressed: value, reason, source })
         )
-        .children(h.button.attr("type", "button").children(model.pressed ? "Pinned" : "Pin"))
+        .children(
+          h.button
+            .attr("type", "button")
+            .class(face(h.props.daisy, classes.button))
+            .children(model.pressed ? "Pinned" : "Pin")
+        )
     ),
 })
 

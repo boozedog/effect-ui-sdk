@@ -2,6 +2,7 @@ import { UiSchema } from "@effect/ui"
 import { Html } from "@effect/ui/html"
 import { Schema } from "effect"
 import * as Collapsible from "@boozedog/effect-ui-sdk/collapsible"
+import { classes, face, Props } from "./face"
 import { reported, tile } from "./shell"
 
 const Message = UiSchema.TaggedEnum({
@@ -20,6 +21,7 @@ const Model = Schema.Struct({
 
 const Definition = Html.component({
   name: "SinkCollapsible",
+  props: Props,
   model: Model,
   message: Message,
 }).make({
@@ -40,9 +42,14 @@ const Definition = Html.component({
         )
         .children(
           Collapsible.Trigger(h).children(
-            h.button.attr("type", "button").children("Order details")
+            h.button
+              .attr("type", "button")
+              .class(face(h.props.daisy, classes.button))
+              .children("Order details")
           ),
-          Collapsible.Panel(h).children(h.p.children("3 items, $84.00"))
+          Collapsible.Panel(h)
+            .class(face(h.props.daisy, classes.panel))
+            .children(h.p.children("3 items, $84.00"))
         )
     ),
 })

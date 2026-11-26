@@ -5,6 +5,7 @@ import { UiSchema } from "@effect/ui"
 import { Html } from "@effect/ui/html"
 import { Schema } from "effect"
 import * as Slider from "@boozedog/effect-ui-sdk/slider"
+import { classes, face, Props } from "./face"
 import { reported, tile } from "./shell"
 
 const Message = UiSchema.TaggedEnum({
@@ -32,6 +33,7 @@ const numbersOf = (value: ReadonlyArray<unknown>): ReadonlyArray<number> | undef
 
 const Definition = Html.component({
   name: "SinkSlider",
+  props: Props,
   model: Model,
   message: Message,
 }).make({
@@ -46,6 +48,7 @@ const Definition = Html.component({
       "value is an array, one number per thumb. Arrow keys and a press on the control move it, and valuechange reports the array the element moved to.",
       `value ${model.value.join(", ")}; ${reported(model.reason, model.source)}`,
       Slider.Root(h)
+        .class(face(h.props.daisy, classes.slider))
         .value(model.value)
         .min(0)
         .max(100)
@@ -57,10 +60,14 @@ const Definition = Html.component({
         .children(
           h.div.attr("data-slot", "row").children(Slider.Value(h)),
           Slider.Control(h).children(
-            Slider.Track(h).children(
-              Slider.Indicator(h),
-              Slider.Thumb(h).attr("aria-label", "Volume")
-            )
+            Slider.Track(h)
+              .class(face(h.props.daisy, classes.sliderTrack))
+              .children(
+                Slider.Indicator(h).class(face(h.props.daisy, classes.sliderIndicator)),
+                Slider.Thumb(h)
+                  .class(face(h.props.daisy, classes.sliderThumb))
+                  .attr("aria-label", "Volume")
+              )
           )
         )
     ),
