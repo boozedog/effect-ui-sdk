@@ -213,6 +213,14 @@ body {
   font-size: 0.8125rem;
 }
 
+/* Styled by `<ui-preferences>`'s `data-density` attribute in the sink tile. */
+ui-preferences[data-density="compact"] p {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
 @media (max-width: 32rem) {
   .tag {
     grid-template-columns: 1fr;
