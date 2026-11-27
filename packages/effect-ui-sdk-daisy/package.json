@@ -37,7 +37,8 @@
   ],
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "prepack": "cp ../../LICENSE ."
+    "prepack": "cp ../../LICENSE .",
+    "postpack": "rm -f LICENSE"
   },
   "dependencies": {
     "daisyui": "5.8.3",

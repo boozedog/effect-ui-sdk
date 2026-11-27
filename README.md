@@ -47,9 +47,9 @@ pnpm test
 pnpm dev             # The catalog site (`?view=catalog`, kitchen sink at `?view=sink`)
 ```
 
-`src/entries` and `src/namespaces.ts` are generated. Do not edit them; change
-`packages/effect-ui-sdk/scripts/generate.mjs` and run `pnpm generate` after
-bumping `@ui-sdk/web`.
+`src/entries/*.ts`, `src/index.ts` and `src/catalog.ts` are generated. Do not
+edit them; change `packages/effect-ui-sdk/scripts/generate.mjs` and run
+`pnpm generate` after bumping `@ui-sdk/web`.
 
 ## License
 

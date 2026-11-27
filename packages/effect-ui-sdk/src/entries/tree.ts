@@ -11,7 +11,7 @@ import { Schema } from "effect"
 export const Root = Html.customElement({
   tag: "ui-tree",
   properties: {
-    value: Schema.String,
+    value: Schema.NullOr(Schema.Union([Schema.String, Schema.Array(Schema.String)])),
     expanded: Schema.Array(Schema.String),
     checked: Schema.Array(Schema.String),
     items: Schema.Array(Schema.Unknown),
@@ -19,7 +19,7 @@ export const Root = Html.customElement({
     loadChildren: Schema.Unknown,
     announcement: Schema.Unknown,
     mode: Schema.Literals(["multiple", "none", "single"]),
-    defaultValue: Schema.String,
+    defaultValue: Schema.NullOr(Schema.Union([Schema.String, Schema.Array(Schema.String)])),
     activation: Schema.Literals(["automatic", "manual"]),
     defaultExpanded: Schema.Array(Schema.String),
     expandOnPress: Schema.Boolean,
@@ -36,7 +36,7 @@ export const Root = Html.customElement({
   },
   events: {
     "valuechange": Schema.Struct({
-      value: Schema.String,
+      value: Schema.NullOr(Schema.Union([Schema.String, Schema.Array(Schema.String)])),
       reason: Schema.String,
       source: Schema.String,
     }),
@@ -50,7 +50,7 @@ export const Root = Html.customElement({
       reason: Schema.String,
       source: Schema.String,
     }),
-    "action": Schema.Struct({}),
+    "action": Schema.Struct({ value: Schema.String }),
     "highlight": Schema.Struct({ value: Schema.String, index: Schema.Number }),
   },
 })

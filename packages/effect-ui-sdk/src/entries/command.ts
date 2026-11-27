@@ -43,7 +43,7 @@ export const Root = Html.customElement({
       reason: Schema.String,
       source: Schema.String,
     }),
-    "action": Schema.Struct({ value: Schema.Unknown }),
+    "action": Schema.Struct({ value: Schema.String }),
     "loadmore": Schema.Struct({}),
   },
 })
@@ -112,7 +112,7 @@ export const Item = Html.customElement({
     index: Schema.Number,
   },
   events: {
-    "select": Schema.Struct({}),
+    "select": Schema.Unknown,
   },
 })
 

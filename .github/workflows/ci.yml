@@ -43,3 +43,8 @@ jobs:
 
       - name: Test
         run: pnpm test
+
+      # The site is Vite + Tailwind. Building it here catches build-only
+      # regressions (CSS pipeline, config, imports) that typecheck and tests miss.
+      - name: Build site
+        run: pnpm build

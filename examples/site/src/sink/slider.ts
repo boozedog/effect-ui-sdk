@@ -1,6 +1,5 @@
-// `value` is Schema.Array(Schema.Unknown). The array lives in the Model and
-// is replaced only in update, so the host can skip an unchanged write. The
-// event value is narrowed to numbers before it is stored.
+// `value` is `number | ReadonlyArray<number>`. The array lives in the Model
+// and is replaced only in update, so the host can skip an unchanged write.
 import { UiSchema } from "@effect/ui"
 import { Html } from "@effect/ui/html"
 import { Schema } from "effect"
@@ -22,15 +21,6 @@ const Model = Schema.Struct({
   source: Schema.String,
 })
 
-const numbersOf = (value: ReadonlyArray<unknown>): ReadonlyArray<number> | undefined => {
-  const numbers: Array<number> = []
-  for (const item of value) {
-    if (typeof item !== "number" || Number.isNaN(item)) return undefined
-    numbers.push(item)
-  }
-  return numbers
-}
-
 const Definition = Html.component({
   name: "SinkSlider",
   props: Props,
@@ -45,7 +35,7 @@ const Definition = Html.component({
     tile(
       h,
       "slider",
-      "value is an array, one number per thumb. Arrow keys and a press on the control move it, and valuechange reports the array the element moved to.",
+      "value is a number or an array of numbers, one per thumb. Arrow keys and a press on the control move it, and valuechange reports the value the element moved to.",
       `value ${model.value.join(", ")}; ${reported(model.reason, model.source)}`,
       Slider.Root(h)
         .class(face(h.props.daisy, classes.slider))
@@ -53,10 +43,13 @@ const Definition = Html.component({
         .min(0)
         .max(100)
         .step(1)
-        .on("valuechange", ({ value, reason, source }) => {
-          const next = numbersOf(value)
-          return next === undefined ? undefined : Message.ChangedValue({ value: next, reason, source })
-        })
+        .on("valuechange", ({ value, reason, source }) =>
+          Message.ChangedValue({
+            value: typeof value === "number" ? [value] : value,
+            reason,
+            source,
+          })
+        )
         .children(
           h.div.attr("data-slot", "row").children(Slider.Value(h)),
           Slider.Control(h).children(

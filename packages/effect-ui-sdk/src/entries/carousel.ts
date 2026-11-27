@@ -18,11 +18,12 @@ export const Root = Html.customElement({
     interval: Schema.Number,
     orientation: Schema.Literals(["horizontal", "vertical"]),
     align: Schema.Literals(["center", "start", "end"]),
-    slidesPerPage: Schema.Unknown,
+    slidesPerPage: Schema.Union([Schema.Number, Schema.Literal("auto")]),
     loop: Schema.Boolean,
     skipSnaps: Schema.Boolean,
     dragFree: Schema.Boolean,
     drag: Schema.Boolean,
+    disabled: Schema.Boolean,
     debug: Schema.Boolean,
   },
   events: {

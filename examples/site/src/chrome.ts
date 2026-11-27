@@ -3,24 +3,33 @@
 // query strings, which keep the Pages base path. The repository link is
 // absolute and does not use `import.meta.env.BASE_URL`.
 import type { Html } from "@effect/ui/html"
-import { href, styleHref, type Query, type ViewName } from "./query"
+import { href, styleHref, themeHref, THEMES, type Query, type ViewName } from "./query"
 
 export const REPO_URL = "https://github.com/boozedog/effect-ui-sdk"
 
-const viewLink = <Msg>(
-  h: Html.H<Msg>,
-  name: ViewName,
-  label: string,
-  current: ViewName,
-  query: Pick<Query, "only" | "style" | "theme">
-) =>
+type NavQuery = Pick<Query, "only" | "style" | "theme">
+
+const viewLink = <Msg>(h: Html.H<Msg>, name: ViewName, label: string, current: ViewName, query: NavQuery) =>
   h.a
     .attr("href", href(name, query))
-    .attr("aria-current", name === current ? "page" : "false")
+    // `aria-current` is only present on the current page. Omitting it is the
+    // ARIA default; `"false"` would be a second way to say the same thing.
+    .attr("aria-current", name === current ? "page" : undefined)
     .class("chip", name === current && "chip-current")
     .children(label)
 
-export const Masthead = <Msg>(h: Html.H<Msg>, view: ViewName, query: Pick<Query, "only" | "style" | "theme">) =>
+// Only in the daisy adapter: the chips switch the daisy theme and keep the
+// view and filter, so the page does not reload into the default look.
+const themeLinks = <Msg>(h: Html.H<Msg>, view: ViewName, query: NavQuery) =>
+  THEMES.map((theme) =>
+    h.a
+      .attr("href", themeHref(view, query, theme))
+      .attr("aria-current", query.theme === theme ? "true" : undefined)
+      .class("chip", query.theme === theme && "chip-current")
+      .children(theme)
+  )
+
+export const Masthead = <Msg>(h: Html.H<Msg>, view: ViewName, query: NavQuery) =>
   h.header.class("masthead").children(
     h.h1.children("Effect UI SDK bindings"),
     h.p.class("lede").children(
@@ -37,7 +46,8 @@ export const Masthead = <Msg>(h: Html.H<Msg>, view: ViewName, query: Pick<Query,
       h.a
         .attr("href", styleHref(view, query))
         .class("chip")
-        .children(query.style === "daisy" ? "UISDK theme" : "Daisy")
+        .children(query.style === "daisy" ? "UISDK theme" : "Daisy"),
+      ...(query.style === "daisy" ? themeLinks(h, view, query) : [])
     )
   )
 

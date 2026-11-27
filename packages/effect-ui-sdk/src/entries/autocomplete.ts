@@ -49,7 +49,7 @@ export const Root = Html.customElement({
     }),
     "openchangecomplete": Schema.Struct({ value: Schema.Boolean }),
     "submit": Schema.Struct({ value: Schema.String }),
-    "highlight": Schema.Struct({ value: Schema.Unknown }),
+    "highlight": Schema.Struct({ value: Schema.Unknown, index: Schema.Number }),
     "loadmore": Schema.Struct({}),
     "dismissattempt": Schema.Struct({ reason: Schema.String }),
   },
@@ -87,6 +87,7 @@ export const Clear = Html.customElement({
 export const Content = Html.customElement({
   tag: "ui-autocomplete-content",
   properties: {
+    anchor: Schema.Unknown,
     side: Schema.Literals(["top", "bottom", "left", "right", "start", "end"]),
     align: Schema.Literals(["center", "start", "end"]),
     sideOffset: Schema.Number,
@@ -94,7 +95,6 @@ export const Content = Html.customElement({
     collisionPadding: Schema.Number,
     arrowPadding: Schema.Number,
     container: Schema.Unknown,
-    anchor: Schema.String,
     keepMounted: Schema.Boolean,
   },
   events: {

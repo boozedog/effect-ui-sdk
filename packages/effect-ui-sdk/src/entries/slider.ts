@@ -11,10 +11,10 @@ import { Schema } from "effect"
 export const Root = Html.customElement({
   tag: "ui-slider",
   properties: {
-    value: Schema.Array(Schema.Unknown),
+    value: Schema.Union([Schema.Number, Schema.Array(Schema.Number)]),
     format: Schema.Unknown,
     name: Schema.String,
-    defaultValue: Schema.Array(Schema.Unknown),
+    defaultValue: Schema.Union([Schema.Number, Schema.Array(Schema.Number)]),
     min: Schema.Number,
     max: Schema.Number,
     step: Schema.Number,
@@ -29,12 +29,12 @@ export const Root = Html.customElement({
   },
   events: {
     "valuechange": Schema.Struct({
-      value: Schema.Array(Schema.Unknown),
+      value: Schema.Union([Schema.Number, Schema.Array(Schema.Number)]),
       reason: Schema.String,
       source: Schema.String,
     }),
     "valuecommit": Schema.Struct({
-      value: Schema.Array(Schema.Unknown),
+      value: Schema.Union([Schema.Number, Schema.Array(Schema.Number)]),
       reason: Schema.String,
       source: Schema.String,
     }),

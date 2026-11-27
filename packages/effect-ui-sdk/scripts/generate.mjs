@@ -81,7 +81,7 @@ function quote(value) {
 // `Schema.Unknown`: the binding still works and the value is written as given,
 // the caller just gets no narrowing.
 function schemaOf(typeText) {
-  const text = String(typeText ?? "unknown").trim().replace(/\s+/g, " ")
+  const text = stripOuterParens(String(typeText ?? "unknown").trim().replace(/\s+/g, " "))
   const simple = {
     boolean: "Schema.Boolean",
     string: "Schema.String",
@@ -96,47 +96,144 @@ function schemaOf(typeText) {
     "boolean[]": "Schema.Array(Schema.Boolean)",
   }
   if (simple[text] !== undefined) return simple[text]
+  if (isLiteral(text)) return literalsOf([text]) ?? "Schema.Unknown"
+  // A function type is not data: `() => Element[]` is not an array of elements,
+  // and a union with one member like it cannot be narrowed without rejecting
+  // the callable.
+  if (isFunctionType(text)) return "Schema.Unknown"
+
+  // Unions come before the `[]` suffix: `number | number[]` is a union of a
+  // number and an array, not an array. Splitting first is the only way to see
+  // the `|` that separates them; `(a | b)[]` keeps one member here because the
+  // separator is nested, and the `[]` suffix is handled below.
+  const members = splitTopLevel(text, "|")
+    .map((member) => member.trim())
+    .filter((member) => member.length > 0)
+  if (members.length > 1) return unionSchema(members)
 
   if (text.startsWith("readonly ")) return schemaOf(text.slice("readonly ".length))
-  if (text.startsWith("(") && text.endsWith(")")) return schemaOf(text.slice(1, -1))
+  // A tuple before the `[]` suffix: `[string, string[]]` is a tuple whose last
+  // element is an array, not an array of something.
+  if (isTuple(text)) return tupleSchema(text)
   if (text.endsWith("[]")) return `Schema.Array(${schemaOf(text.slice(0, -2))})`
 
-  const members = splitTopLevel(text, "|").map((member) => member.trim())
-  if (members.length > 1) {
-    const nullish = members.filter((member) => member === "null" || member === "undefined")
-    const rest = members.filter((member) => member !== "null" && member !== "undefined")
-    if (nullish.length > 0 && rest.length === 1) {
-      const inner = schemaOf(rest[0])
-      if (inner === "Schema.Unknown") return inner
-      if (nullish.includes("null") && nullish.includes("undefined")) {
-        return `Schema.UndefinedOr(Schema.NullOr(${inner}))`
-      }
-      return nullish.includes("null") ? `Schema.NullOr(${inner})` : `Schema.UndefinedOr(${inner})`
-    }
-    // `string | "top" | "bottom"` and `string & {}` shapes: a general string
-    // covers every member the manifest names.
-    if (rest.includes("string")) return "Schema.String"
-    if (rest.includes("boolean")) {
-      const others = rest.filter((member) => member !== "boolean" && isLiteral(member))
-      if (others.length === rest.length - 1) {
-        const literals = literalsOf(others)
-        return literals === undefined
-          ? "Schema.Unknown"
-          : `Schema.Union([Schema.Boolean, ${literals}])`
-      }
-      return "Schema.Unknown"
-    }
-    if (rest.every((member) => isLiteral(member))) {
-      const literals = literalsOf(rest)
-      return literals ?? "Schema.Unknown"
-    }
-    return "Schema.Unknown"
-  }
-
-  if (isLiteral(text)) return literalsOf([text]) ?? "Schema.Unknown"
-  // Branded ISO date strings are strings at runtime.
   if (text === "ISODate" || text === "ISOMonth") return "Schema.String"
   return "Schema.Unknown"
+}
+
+// `=>` outside quotes makes it a function type, which no Schema can narrow.
+function isFunctionType(text) {
+  let quoteChar
+  for (let index = 0; index < text.length; index++) {
+    const character = text[index]
+    if (quoteChar !== undefined) {
+      if (character === quoteChar && text[index - 1] !== "\\") quoteChar = undefined
+      continue
+    }
+    if (character === '"' || character === "'") quoteChar = character
+    else if (character === "=" && text[index + 1] === ">") return true
+  }
+  return false
+}
+
+// `(string | Element)[]` keeps its parentheses around the union, and
+// `(a | b) | (c | d)` has parentheses that only cover part of the union. Only a
+// pair that wraps the whole text is dropped, so a union is never corrupted.
+function stripOuterParens(text) {
+  let result = text
+  while (result.startsWith("(") && result.endsWith(")")) {
+    let depth = 0
+    let quoteChar
+    let wrapsAll = true
+    for (let index = 0; index < result.length; index++) {
+      const character = result[index]
+      if (quoteChar !== undefined) {
+        if (character === quoteChar && result[index - 1] !== "\\") quoteChar = undefined
+        continue
+      }
+      if (character === '"' || character === "'") quoteChar = character
+      else if (character === "(") depth++
+      else if (character === ")") {
+        depth--
+        if (depth === 0 && index < result.length - 1) {
+          wrapsAll = false
+          break
+        }
+      }
+    }
+    if (!wrapsAll) return result
+    result = result.slice(1, -1).trim()
+  }
+  return result
+}
+
+// Splits the nullish members off a union whatever else it holds, so
+// `string | string[] | null` keeps both the array and the null.
+function unionSchema(members) {
+  const nullish = members.filter((member) => member === "null" || member === "undefined")
+  const rest = members.filter((member) => member !== "null" && member !== "undefined")
+  if (rest.length === 0) return "Schema.Unknown"
+  const inner = rest.length === 1 ? schemaOf(rest[0]) : unionOfRest(rest)
+  if (inner === "Schema.Unknown") return inner
+  const hasNull = nullish.includes("null")
+  const hasUndefined = nullish.includes("undefined")
+  if (hasNull && hasUndefined) return `Schema.UndefinedOr(Schema.NullOr(${inner}))`
+  if (hasNull) return `Schema.NullOr(${inner})`
+  if (hasUndefined) return `Schema.UndefinedOr(${inner})`
+  return inner
+}
+
+// A union of the members that are not null or undefined. Literal members merge
+// into one `Schema.Literals`, a `string` member collapses the union only when
+// every other member is a string already, and anything else is converted on its
+// own and unioned: `number | number[]` keeps both halves.
+function unionOfRest(members) {
+  if (members.includes("string")) {
+    const others = members.filter((member) => member !== "string")
+    const stringsOnly = others.every(
+      (member) =>
+        isStringLiteral(member) ||
+        member === "string & {}" ||
+        member === "ISODate" ||
+        member === "ISOMonth"
+    )
+    if (stringsOnly) return "Schema.String"
+  }
+
+  const literals = members.filter(isLiteral)
+  const literalSchema = literals.length > 0 ? literalsOf(literals) : undefined
+  const schemas = []
+  let placedLiterals = false
+  for (const member of members) {
+    if (isLiteral(member)) {
+      if (placedLiterals) continue
+      placedLiterals = true
+      if (literalSchema !== undefined) schemas.push(literalSchema)
+      continue
+    }
+    schemas.push(schemaOf(member))
+  }
+  if (schemas.length === 0) return "Schema.Unknown"
+  // One member the manifest does not describe taints the whole union: a
+  // `Schema.Union` would reject the values that member accepts.
+  if (schemas.includes("Schema.Unknown")) return "Schema.Unknown"
+  const unique = [...new Set(schemas)]
+  return unique.length === 1 ? unique[0] : `Schema.Union([${unique.join(", ")}])`
+}
+
+function isTuple(text) {
+  return text.startsWith("[") && text.endsWith("]")
+}
+
+// `[number, number]` is a fixed-length tuple, not an array of either element.
+function tupleSchema(text) {
+  const elements = splitTopLevel(text.slice(1, -1), ",")
+    .map((element) => element.trim())
+    .filter((element) => element.length > 0)
+  if (elements.length === 0) return "Schema.Unknown"
+  const schemas = elements.map(schemaOf)
+  if (schemas.includes("Schema.Unknown")) return "Schema.Unknown"
+  return `Schema.Tuple([${schemas.join(", ")}])`
 }
 
 // A literal union, as one `Schema.Literals` when the members share a type and
@@ -171,7 +268,11 @@ function splitTopLevel(text, separator) {
     }
     if (character === '"' || character === "'") quoteChar = character
     else if ("<({[".includes(character)) depth++
-    else if (">)}]".includes(character)) depth--
+    // `=>` closes nothing: counting its `>` as a bracket would send the rest
+    // of the text below depth 0, where the separator stops matching and
+    // `(date: string) => boolean | readonly DateMatcher[]` reads as one member.
+    else if (character === ">" && text[index - 1] === "=") continue
+    else if (">)}]".includes(character)) depth = Math.max(0, depth - 1)
     else if (character === separator && depth === 0) {
       parts.push(text.slice(start, index))
       start = index + 1
@@ -190,6 +291,10 @@ function isLiteral(text) {
   )
 }
 
+function isStringLiteral(text) {
+  return /^"[^"]*"$/.test(text) || /^'[^']*'$/.test(text)
+}
+
 function literal(text) {
   return text.replace(/^'/, '"').replace(/'$/, '"')
 }
@@ -202,22 +307,25 @@ function literal(text) {
 // reads. Richer details keep the fields that matter and drop the DOM event and
 // the cancel callbacks, since a decoded payload cannot cancel anything.
 function eventSchema(typeText) {
-  const text = String(typeText ?? "unknown").trim().replace(/\s+/g, " ")
+  const raw = String(typeText ?? "unknown").trim()
+  const text = raw.replace(/\s+/g, " ")
   const change =
     /^Ui(?:Detailed)?ChangeEvent<([\s\S]+)>$/.exec(text) ??
     /^CustomEvent<UiChangeDetail<([\s\S]+)>>$/.exec(text)
   if (change) {
-    const [valueType] = splitTopLevel(change[1], ",").map((part) => part.trim())
-    return changeSchema(schemaOf(valueType))
+    const [valueType, detailsType] = splitTopLevel(change[1], ",").map((part) => part.trim())
+    return changeSchema(schemaOf(valueType), extraDetailFields(detailsType))
   }
   if (text === "UiOpenChangeCompleteEvent") {
     return "Schema.Struct({ value: Schema.Boolean })"
   }
-  if (/^UiDismissAttemptEvent</.test(text)) {
+  // Every dismiss-attempt detail the manifest names carries a reason and
+  // nothing a view can act on.
+  if (/^UiDismissAttemptEvent</.test(text) || text === "CustomEvent<DialogDismissAttemptDetails>") {
     return "Schema.Struct({ reason: Schema.String })"
   }
   if (text === "UiHighlightEvent") {
-    return "Schema.Struct({ value: Schema.Unknown })"
+    return "Schema.Struct({ value: Schema.Unknown, index: Schema.Number })"
   }
   if (text === "UiLoadMoreEvent") {
     return "Schema.Struct({})"
@@ -225,7 +333,7 @@ function eventSchema(typeText) {
   if (text === "CustomEvent<UiActionDetail>") {
     return "Schema.Struct({ source: Schema.String })"
   }
-  const custom = /^CustomEvent<([\s\S]+)>$/.exec(text)
+  const custom = /^CustomEvent<([\s\S]+)>$/.exec(raw)
   if (custom) {
     const inner = custom[1].trim()
     if (inner.startsWith("{")) return objectSchema(inner)
@@ -234,29 +342,118 @@ function eventSchema(typeText) {
   return "Schema.Unknown"
 }
 
-function changeSchema(valueSchema) {
-  return `Schema.Struct({
-      value: ${valueSchema},
-      reason: Schema.String,
-      source: Schema.String,
-    })`
+function changeSchema(valueSchema, extraFields = []) {
+  const fields = [
+    `value: ${valueSchema}`,
+    "reason: Schema.String",
+    "source: Schema.String",
+    ...extraFields,
+  ]
+  return `Schema.Struct({\n${fields.map((field) => `      ${field},`).join("\n")}\n    })`
+}
+
+// Inline `{ ... }` members intersected onto a change event's details (such as
+// `ChangeDetails<...> & { trigger: string | null }`) keep their fields rather
+// than letting `Schema.Struct` drop them as excess properties at decode time.
+function extraDetailFields(detailsType) {
+  if (detailsType === undefined) return []
+  const fields = []
+  for (const part of splitTopLevel(detailsType, "&").map((member) => member.trim())) {
+    if (!part.startsWith("{")) continue
+    fields.push(...objectFields(leadingObjectBody(part)))
+  }
+  return fields
 }
 
 // `{ value: string; index: number; event?: Event }` becomes a Struct of the
 // fields it describes. A field the manifest types as a DOM event or a function
 // is left out: it is not data a view can use.
-function objectSchema(text) {
-  const body = text.replace(/^\{/, "").replace(/\}$/, "")
+//
+// The manifest is not consistent about how it separates fields. Some details use
+// `;`, some put one field per line with no separator at all, and some lose the
+// newline entirely (`{ value: string waitUntil: ... }` for `ui-menu:action`).
+// Fields are therefore read as runs of text between the starts of two field
+// names, so a newline, a `;` and neither one all split the same way.
+function objectFields(body) {
   const fields = []
-  for (const part of splitTopLevel(body, ";")) {
-    const field = /^([A-Za-z_$][\w$]*)(\?)?\s*:\s*([\s\S]+)$/.exec(part.trim())
+  for (const part of objectFieldSlices(body)) {
+    const field = /^\s*([A-Za-z_$][\w$]*)(\?)?\s*:\s*([\s\S]+?)\s*$/.exec(part)
     if (field === null) continue
     const [, name, optional, type] = field
     const schema = schemaOf(type)
-    if (/\bEvent\b/.test(type) || schema === "Schema.Undefined") continue
+    if (/\bEvent\b/.test(type) || type.includes("=>") || schema === "Schema.Undefined") continue
     fields.push(`${key(name)}: ${optional ? `Schema.optional(${schema})` : schema}`)
   }
-  return fields.length > 0 ? `Schema.Struct({ ${fields.join(", ")} })` : "Schema.Struct({})"
+  return fields
+}
+
+function objectSchema(text) {
+  const body = leadingObjectBody(text)
+  const fields = objectFields(body)
+  if (fields.length > 0) return `Schema.Struct({ ${fields.join(", ")} })`
+  // A body that carries fields but none a view can use is not an empty
+  // detail: decoding it as one would reject every real event. `Schema.Unknown`
+  // accepts it instead, and silently.
+  return body.trim().length === 0 ? "Schema.Struct({})" : "Schema.Unknown"
+}
+
+// One slice per field: from the start of a top-level `name:` to the start of
+// the next one, or to a top-level `;` or newline if that comes first. Colons
+// inside brackets (`(promise: Promise<unknown>) => void`) or object types are
+// nested, so they cannot start a field.
+function objectFieldSlices(body) {
+  const starts = []
+  const separators = []
+  let depth = 0
+  let quoteChar
+  for (let index = 0; index < body.length; index++) {
+    const character = body[index]
+    if (quoteChar !== undefined) {
+      if (character === quoteChar && body[index - 1] !== "\\") quoteChar = undefined
+      continue
+    }
+    if (character === '"' || character === "'") quoteChar = character
+    else if ("(<[{".includes(character)) depth++
+    else if (character === ">" && body[index - 1] === "=") continue
+    else if (")>]}".includes(character)) depth = Math.max(0, depth - 1)
+    else if (depth === 0 && (character === ";" || character === "\n")) separators.push(index)
+    else if (
+      depth === 0 &&
+      (index === 0 || /[\s;,]/.test(body[index - 1])) &&
+      /^([A-Za-z_$][\w$]*)(\?)?\s*:/.test(body.slice(index))
+    ) {
+      starts.push(index)
+    }
+  }
+  return starts.map((start, position) => {
+    const nextStart = position + 1 < starts.length ? starts[position + 1] : body.length
+    const nextSeparator = separators.find((separator) => separator > start) ?? body.length
+    return body.slice(start, Math.min(nextStart, nextSeparator))
+  })
+}
+
+// The `{ ... }` block a detail type starts with, without whatever an
+// intersection appends: `{ value: Event; } & Pick<UiActionDetail, ...>` keeps
+// only the first block.
+function leadingObjectBody(text) {
+  const trimmed = text.trim()
+  let depth = 0
+  let quoteChar
+  for (let index = 0; index < trimmed.length; index++) {
+    const character = trimmed[index]
+    if (quoteChar !== undefined) {
+      if (character === quoteChar && trimmed[index - 1] !== "\\") quoteChar = undefined
+      continue
+    }
+    if (character === '"' || character === "'") quoteChar = character
+    else if ("{([<".includes(character)) depth++
+    else if (character === ">" && trimmed[index - 1] === "=") continue
+    else if ("})]>".includes(character)) {
+      depth = Math.max(0, depth - 1)
+      if (depth === 0) return trimmed.slice(1, index)
+    }
+  }
+  return trimmed.replace(/^\{/, "").replace(/\}$/, "")
 }
 
 function summary(description) {

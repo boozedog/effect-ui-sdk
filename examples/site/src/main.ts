@@ -15,7 +15,9 @@ import { SinkPage } from "./sink/page"
 //
 // `site.css` is page layout. The component theme is a separate chunk, loaded
 // before mount: `@ui-sdk/core/web.css` unless `style=daisy`, in which case
-// the daisy stylesheet. The default page does not request the daisy chunk.
+// `./daisy.css`. That wrapper imports the daisy package stylesheet and tells
+// Tailwind to scan this app's source. The default page does not request the
+// daisy chunk.
 const query = parseQuery(window.location.search)
 const Page = query.view === "sink" ? SinkPage : CatalogPage
 
@@ -23,17 +25,26 @@ if (query.style === "daisy" && query.theme !== null) {
   document.documentElement.dataset.theme = query.theme
 }
 
+const root = document.getElementById("app")
+if (root === null) {
+  throw new Error('The site needs a mount point: index.html must contain <div id="app"></div>.')
+}
+
 const styles =
   query.style === "daisy"
-    ? import("@boozedog/effect-ui-sdk-daisy/theme.css")
+    ? import("./daisy.css")
     : import("@ui-sdk/core/web.css")
 
-styles.then(() => {
-  const Main = BrowserHost.mount(
-    Page,
-    { only: query.only, style: query.style, theme: query.theme },
-    document.getElementById("app")!
-  ).pipe(Layer.provide(DevTools.layer({ position: "BottomRight" })))
+styles
+  .then(() => {
+    const Main = BrowserHost.mount(
+      Page,
+      { only: query.only, style: query.style, theme: query.theme },
+      root
+    ).pipe(Layer.provide(DevTools.layer({ position: "BottomRight" })))
 
-  Layer.launch(Main).pipe(Effect.runFork)
-})
+    Layer.launch(Main).pipe(Effect.runFork)
+  })
+  .catch((error: unknown) => {
+    console.error("Failed to load styles", error)
+  })

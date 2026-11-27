@@ -54,7 +54,7 @@ export const Root = Html.customElement({
       source: Schema.String,
     }),
     "openchangecomplete": Schema.Struct({ value: Schema.Boolean }),
-    "highlight": Schema.Struct({ value: Schema.Unknown }),
+    "highlight": Schema.Struct({ value: Schema.Unknown, index: Schema.Number }),
     "loadmore": Schema.Struct({}),
     "dismissattempt": Schema.Struct({ reason: Schema.String }),
     "valuechange": Schema.Struct({
@@ -146,6 +146,7 @@ export const Clear = Html.customElement({
 export const Content = Html.customElement({
   tag: "ui-combobox-content",
   properties: {
+    anchor: Schema.Unknown,
     side: Schema.Literals(["top", "bottom", "left", "right", "start", "end"]),
     align: Schema.Literals(["center", "start", "end"]),
     sideOffset: Schema.Number,
@@ -153,7 +154,6 @@ export const Content = Html.customElement({
     collisionPadding: Schema.Number,
     arrowPadding: Schema.Number,
     container: Schema.Unknown,
-    anchor: Schema.String,
     keepMounted: Schema.Boolean,
   },
   events: {
@@ -228,11 +228,11 @@ export const Input = Html.customElement({
 export const Item = Html.customElement({
   tag: "ui-combobox-item",
   properties: {
+    value: Schema.Unknown,
     label: Schema.String,
     keywords: Schema.Array(Schema.String),
     disabled: Schema.Boolean,
     index: Schema.Number,
-    value: Schema.Unknown,
   },
   events: {
   },

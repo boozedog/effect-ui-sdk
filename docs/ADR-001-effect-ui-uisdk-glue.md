@@ -1,7 +1,7 @@
 # ADR-001: Effect UI ↔ UISDK Glue Layer (with DaisyUI Styling Adapter)
 
-**Status:** Proposed  
-**Date:** 2025-11-26  
+**Status:** Accepted  
+**Date:** 2026-11-26  
 **Context:** Effect UI is the new frontend foundation that continues Foldkit 0.x. UISDK provides unstyled, agent-friendly Web Components with tested keyboard, focus, selection, and ARIA behavior. We want the full UISDK surface available inside Effect UI applications without reimplementing behaviors or forcing either system to own the other’s state model. DaisyUI is the chosen styling layer.
 
 ## Decision

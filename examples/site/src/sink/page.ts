@@ -4,7 +4,7 @@ import { Html } from "@effect/ui/html"
 import { Schema } from "effect"
 import { entries } from "@boozedog/effect-ui-sdk/catalog"
 import { Foot, Masthead } from "../chrome"
-import { matches } from "../query"
+import { matches, PageProps } from "../query"
 import { AccordionTile } from "./accordion"
 import { ButtonTile } from "./button"
 import { CheckboxTile } from "./checkbox"
@@ -19,12 +19,6 @@ import { SwitchTile } from "./switch"
 import { TabsTile } from "./tabs"
 import { ToggleTile } from "./toggle"
 import { TooltipTile } from "./tooltip"
-
-const PageProps = Schema.Struct({
-  only: Schema.Array(Schema.String),
-  style: Schema.Literals(["uisdk", "daisy"]),
-  theme: Schema.NullOr(Schema.Literals(["light", "dark", "cupcake"])),
-})
 
 const Definition = Html.component({
   name: "SinkPage",

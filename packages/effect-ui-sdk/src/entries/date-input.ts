@@ -12,7 +12,7 @@ export const Root = Html.customElement({
   tag: "ui-date-input",
   properties: {
     value: Schema.NullOr(Schema.String),
-    unavailable: Schema.Array(Schema.String),
+    unavailable: Schema.Unknown,
     name: Schema.String,
     defaultValue: Schema.NullOr(Schema.String),
     granularity: Schema.Literals(["day", "hour", "minute", "second"]),
