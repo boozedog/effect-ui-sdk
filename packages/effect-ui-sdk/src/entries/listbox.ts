@@ -30,7 +30,7 @@ export const Root = Html.customElement({
     debug: Schema.Boolean,
   },
   events: {
-    "highlight": Schema.Struct({ value: Schema.Unknown }),
+    "highlight": Schema.Struct({ value: Schema.Unknown, index: Schema.Number }),
     "valuechange": Schema.Struct({
       value: Schema.Unknown,
       reason: Schema.String,

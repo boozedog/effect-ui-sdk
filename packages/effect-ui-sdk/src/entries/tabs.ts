@@ -35,6 +35,7 @@ export const Root = Html.customElement({
 export const Indicator = Html.customElement({
   tag: "ui-tabs-indicator",
   properties: {
+    followHover: Schema.Boolean,
   },
   events: {
   },

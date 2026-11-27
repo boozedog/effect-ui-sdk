@@ -1,6 +1,5 @@
-// Root declares `action` with an empty detail and no `valuechange`. Item
-// declares `select`, also with an empty detail, so the chosen value is the
-// item's own `value`, recorded from the handler that item owns.
+// Root's `action` event carries `{ value }` for the chosen item, and
+// `openchange` reports whether the menu is open.
 import { UiSchema } from "@effect/ui"
 import { Html } from "@effect/ui/html"
 import { Schema } from "effect"
@@ -43,13 +42,14 @@ const Definition = Html.component({
     tile(
       h,
       "menu",
-      "The menu binding has no valuechange. Each item's select event records that item's value. openchange still reports whether the menu is open.",
+      "Root's action event carries the chosen item's value. openchange still reports whether the menu is open.",
       `open ${model.open}; chose ${model.chosen === "" ? "(none)" : model.chosen}; ${reported(model.reason, model.source)}`,
       Menu.Root(h)
         .open(model.open)
         .on("openchange", ({ value, reason, source }) =>
           Message.ChangedOpen({ open: value, reason, source })
         )
+        .on("action", ({ value }) => Message.Chose({ value }))
         .children(
           Menu.Trigger(h).children(
             h.button.attr("type", "button").class(face(h.props.daisy, classes.button)).children("Actions")
@@ -61,7 +61,6 @@ const Definition = Html.component({
                 Menu.Item(h)
                   .value(item)
                   .class(face(h.props.daisy, classes.item))
-                  .on("select", () => Message.Chose({ value: item }))
                   .children(item)
               )
             )

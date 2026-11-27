@@ -11,10 +11,10 @@ import { Schema } from "effect"
 export const Root = Html.customElement({
   tag: "ui-date-picker",
   properties: {
-    value: Schema.String,
+    value: Schema.NullOr(Schema.Union([Schema.String, Schema.Tuple([Schema.String, Schema.String])])),
     month: Schema.String,
     open: Schema.Boolean,
-    unavailable: Schema.Array(Schema.String),
+    unavailable: Schema.Unknown,
     name: Schema.String,
     defaultMonth: Schema.String,
     min: Schema.String,
@@ -36,7 +36,7 @@ export const Root = Html.customElement({
     allowUnavailable: Schema.Boolean,
     container: Schema.Unknown,
     mode: Schema.Literals(["single", "range"]),
-    defaultValue: Schema.String,
+    defaultValue: Schema.NullOr(Schema.Union([Schema.String, Schema.Tuple([Schema.String, Schema.String])])),
     defaultOpen: Schema.Boolean,
     closeOnSelect: Schema.Boolean,
     presentation: Schema.Literals(["popover", "sheet", "auto"]),
@@ -86,6 +86,7 @@ export const Clear = Html.customElement({
 export const Content = Html.customElement({
   tag: "ui-date-picker-content",
   properties: {
+    anchor: Schema.Unknown,
     side: Schema.Literals(["top", "bottom", "left", "right", "start", "end"]),
     align: Schema.Literals(["center", "start", "end"]),
     sideOffset: Schema.Number,
@@ -93,7 +94,6 @@ export const Content = Html.customElement({
     collisionPadding: Schema.Number,
     arrowPadding: Schema.Number,
     container: Schema.Unknown,
-    anchor: Schema.String,
     finalFocus: Schema.Unknown,
     keepMounted: Schema.Boolean,
   },
@@ -133,7 +133,7 @@ export const Input = Html.customElement({
 export const Preset = Html.customElement({
   tag: "ui-date-picker-preset",
   properties: {
-    value: Schema.String,
+    value: Schema.NullOr(Schema.Union([Schema.String, Schema.Tuple([Schema.String, Schema.String])])),
   },
   events: {
   },

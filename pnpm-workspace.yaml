@@ -5,14 +5,16 @@ packages:
 # One Vite for the site and for Vitest, pinned below the release age the local
 # policy enforces so a frozen-lockfile install passes on a fresh checkout.
 overrides:
-  vite: 8.3.8
+  vite: 8.4.0
 
-# `effect@4.1.6` is newer than the default release-age policy on the machine
-# that wrote this lockfile. CI installs from the committed lockfile, so the pin
-# stays exact and reproducible.
+# Recently published versions can be newer than the local release-age policy.
+# CI installs from the committed lockfile, so pins stay reproducible.
 minimumReleaseAgeExclude:
-  - effect@4.1.6
+  - effect@4.1.7
   - daisyui@5.8.3
+  - vite@8.4.0
+  - "@ui-sdk/web@0.1.0-beta.18"
+  - "@ui-sdk/core@0.1.0-beta.18"
 
 onlyBuiltDependencies:
   - esbuild

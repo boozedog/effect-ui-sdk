@@ -11,11 +11,11 @@ import { Schema } from "effect"
 export const Root = Html.customElement({
   tag: "ui-calendar",
   properties: {
-    value: Schema.String,
+    value: Schema.NullOr(Schema.Union([Schema.String, Schema.Array(Schema.String), Schema.Tuple([Schema.String, Schema.String])])),
     month: Schema.String,
-    unavailable: Schema.Array(Schema.String),
+    unavailable: Schema.Unknown,
     mode: Schema.Literals(["multiple", "single", "range"]),
-    defaultValue: Schema.String,
+    defaultValue: Schema.NullOr(Schema.Union([Schema.String, Schema.Array(Schema.String), Schema.Tuple([Schema.String, Schema.String])])),
     defaultMonth: Schema.String,
     min: Schema.String,
     max: Schema.String,

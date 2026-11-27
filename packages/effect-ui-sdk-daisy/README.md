@@ -18,14 +18,22 @@ Importing the file is not enough to compile it. Vite's own CSS pipeline leaves `
 
 `theme.css` already does that, with themes `light` (default), `dark` (`prefers-color-scheme`), and `cupcake`. The `ui-sdk` layer is declared first so these rules beat the behavior CSS UISDK injects into that layer.
 
+Tailwind v4 only generates the classes it can see, and this package scans its own source, not yours. Scan your app's source from the CSS entry that imports this one:
+
+```css
+/* src/daisy.css */
+@import "@boozedog/effect-ui-sdk-daisy/theme.css";
+@source ".";
+```
+
 ```ts
-import "@boozedog/effect-ui-sdk-daisy/theme.css"
+import "./daisy.css"
 import { button, popup } from "@boozedog/effect-ui-sdk-daisy/classes"
 ```
 
 Set `document.documentElement.dataset.theme` to `light`, `dark`, or `cupcake` to pick a daisy theme. Leave it unset and daisy follows `light` / `prefers-color-scheme: dark`.
 
-The Pages site does this when the query string contains `style=daisy`. `theme=cupcake` (or `light` / `dark`) is applied only in that mode. The default page, with no `style` query, keeps the UISDK `web.css` look and does not load this CSS.
+The Pages site does this when the query string contains `style=daisy`, through its `src/daisy.css` entry, which imports `theme.css` and adds `@source "."` for the site's own markup. `theme=cupcake` (or `light` / `dark`) is applied only in that mode, from the nav chips. The default page, with no `style` query, keeps the UISDK `web.css` look and does not load this CSS.
 
 ## What gets a daisy class
 

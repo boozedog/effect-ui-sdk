@@ -16,7 +16,7 @@ export const Root = Html.customElement({
     defaultValue: Schema.Array(Schema.Unknown),
     announcement: Schema.Unknown,
     name: Schema.String,
-    accept: Schema.Array(Schema.String),
+    accept: Schema.Union([Schema.String, Schema.Array(Schema.String)]),
     maxFiles: Schema.Number,
     maxSize: Schema.Number,
     minSize: Schema.Number,
@@ -49,7 +49,7 @@ export const Dropzone = Html.customElement({
   tag: "ui-file-input-dropzone",
   properties: {
     target: Schema.Literals(["document", "element"]),
-    pasteTarget: Schema.String,
+    pasteTarget: Schema.Unknown,
   },
   events: {
   },

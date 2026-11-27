@@ -38,13 +38,13 @@ export const Root = Html.customElement({
 export const Content = Html.customElement({
   tag: "ui-navigation-menu-content",
   properties: {
+    anchor: Schema.Unknown,
     side: Schema.Literals(["top", "bottom", "left", "right", "start", "end"]),
     align: Schema.Literals(["center", "start", "end"]),
     sideOffset: Schema.Number,
     alignOffset: Schema.Number,
     collisionPadding: Schema.Number,
     arrowPadding: Schema.Number,
-    anchor: Schema.String,
     keepMounted: Schema.Boolean,
     hiddenUntilFound: Schema.Boolean,
   },
@@ -59,6 +59,7 @@ export const Content = Html.customElement({
 export const Indicator = Html.customElement({
   tag: "ui-navigation-menu-indicator",
   properties: {
+    followHover: Schema.Boolean,
   },
   events: {
   },
@@ -136,13 +137,13 @@ export const Trigger = Html.customElement({
 export const Viewport = Html.customElement({
   tag: "ui-navigation-menu-viewport",
   properties: {
+    anchor: Schema.Unknown,
     side: Schema.Literals(["top", "bottom", "left", "right", "start", "end"]),
     align: Schema.Literals(["center", "start", "end"]),
     sideOffset: Schema.Number,
     alignOffset: Schema.Number,
     collisionPadding: Schema.Number,
     arrowPadding: Schema.Number,
-    anchor: Schema.String,
   },
   events: {
   },

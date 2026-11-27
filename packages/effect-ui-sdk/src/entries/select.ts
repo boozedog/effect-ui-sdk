@@ -53,7 +53,7 @@ export const Root = Html.customElement({
       source: Schema.String,
     }),
     "loadmore": Schema.Struct({}),
-    "highlight": Schema.Struct({ value: Schema.Unknown }),
+    "highlight": Schema.Struct({ value: Schema.Unknown, index: Schema.Number }),
     "dismissattempt": Schema.Struct({ reason: Schema.String }),
     "valuechange": Schema.Struct({
       value: Schema.Unknown,
@@ -95,6 +95,7 @@ export const Clear = Html.customElement({
 export const Content = Html.customElement({
   tag: "ui-select-content",
   properties: {
+    anchor: Schema.Unknown,
     side: Schema.Literals(["top", "bottom", "left", "right", "start", "end"]),
     align: Schema.Literals(["center", "start", "end"]),
     sideOffset: Schema.Number,
@@ -102,7 +103,6 @@ export const Content = Html.customElement({
     collisionPadding: Schema.Number,
     arrowPadding: Schema.Number,
     container: Schema.Unknown,
-    anchor: Schema.String,
     alignItemWithTrigger: Schema.Boolean,
     keepMounted: Schema.Boolean,
   },

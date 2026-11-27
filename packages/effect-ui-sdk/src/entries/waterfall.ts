@@ -14,7 +14,7 @@ export const Root = Html.customElement({
     value: Schema.NullOr(Schema.String),
     expanded: Schema.Array(Schema.String),
     items: Schema.Array(Schema.Unknown),
-    range: Schema.Unknown,
+    range: Schema.Tuple([Schema.Number, Schema.Number]),
     format: Schema.Unknown,
     getBarLabel: Schema.Unknown,
     defaultValue: Schema.NullOr(Schema.String),

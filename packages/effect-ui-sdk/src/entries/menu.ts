@@ -36,7 +36,7 @@ export const Root = Html.customElement({
       reason: Schema.String,
       source: Schema.String,
     }),
-    "action": Schema.Struct({}),
+    "action": Schema.Struct({ value: Schema.String }),
     "dismissattempt": Schema.Struct({ reason: Schema.String }),
   },
 })
@@ -71,6 +71,7 @@ export const CheckboxItem = Html.customElement({
 export const Content = Html.customElement({
   tag: "ui-menu-content",
   properties: {
+    anchor: Schema.Unknown,
     side: Schema.Literals(["top", "bottom", "left", "right", "start", "end"]),
     align: Schema.Literals(["center", "start", "end"]),
     sideOffset: Schema.Number,
@@ -78,7 +79,6 @@ export const Content = Html.customElement({
     collisionPadding: Schema.Number,
     arrowPadding: Schema.Number,
     container: Schema.Unknown,
-    anchor: Schema.String,
     finalFocus: Schema.Unknown,
     keepMounted: Schema.Boolean,
   },
@@ -139,7 +139,7 @@ export const Item = Html.customElement({
     closeOnSelect: Schema.Boolean,
   },
   events: {
-    "select": Schema.Struct({}),
+    "select": Schema.Unknown,
   },
 })
 
@@ -254,7 +254,7 @@ export const Sub = Html.customElement({
       reason: Schema.String,
       source: Schema.String,
     }),
-    "action": Schema.Struct({}),
+    "action": Schema.Struct({ value: Schema.String }),
     "checkedchange": Schema.Struct({
       value: Schema.Boolean,
       reason: Schema.String,
@@ -276,13 +276,13 @@ export const Sub = Html.customElement({
 export const SubContent = Html.customElement({
   tag: "ui-menu-sub-content",
   properties: {
+    anchor: Schema.Unknown,
     side: Schema.Literals(["top", "bottom", "left", "right", "start", "end"]),
     align: Schema.Literals(["center", "start", "end"]),
     sideOffset: Schema.Number,
     alignOffset: Schema.Number,
     collisionPadding: Schema.Number,
     arrowPadding: Schema.Number,
-    anchor: Schema.String,
     finalFocus: Schema.Unknown,
     keepMounted: Schema.Boolean,
   },

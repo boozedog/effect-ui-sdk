@@ -57,6 +57,7 @@ export const Arrow = Html.customElement({
 export const Content = Html.customElement({
   tag: "ui-tooltip-content",
   properties: {
+    anchor: Schema.Unknown,
     side: Schema.Literals(["top", "bottom", "left", "right", "start", "end"]),
     align: Schema.Literals(["center", "start", "end"]),
     sideOffset: Schema.Number,
@@ -64,7 +65,6 @@ export const Content = Html.customElement({
     collisionPadding: Schema.Number,
     container: Schema.Unknown,
     arrowPadding: Schema.Number,
-    anchor: Schema.String,
   },
   events: {
   },

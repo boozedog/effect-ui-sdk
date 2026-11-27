@@ -14,7 +14,7 @@ export const Root = Html.customElement({
     open: Schema.Boolean,
     snapPoint: Schema.Unknown,
     physics: Schema.Unknown,
-    persistentElements: Schema.Array(Schema.Unknown),
+    persistentElements: Schema.Unknown,
     container: Schema.Unknown,
     defaultOpen: Schema.Boolean,
     dismissible: Schema.Boolean,

@@ -7,7 +7,7 @@ web components. One `Html.customElement` per tag, generated from the
 ```ts
 import { Html } from "@effect/ui/html"
 import { Schema } from "effect"
-import { Toggle } from "@boozedog/effect-ui-sdk/toggle"
+import * as Toggle from "@boozedog/effect-ui-sdk/toggle"
 
 const Message = UiSchema.TaggedEnum({ ChangedPressed: { pressed: Schema.Boolean } })
 
@@ -19,6 +19,18 @@ Toggle.Root(h)
 Importing an entry registers that entry's elements, exactly as importing
 `@ui-sdk/web/<entry>` does. The barrel (`@boozedog/effect-ui-sdk`) registers
 everything; a subpath keeps the rest out of the bundle.
+
+## Requirements
+
+`@effect/ui` needs `"strict": true` and `"exactOptionalPropertyTypes": true` in
+`tsconfig.json`. The generated bindings rely on both, and the packages in this
+repository set them; a consumer without them gets type errors from the Effect UI
+builder types.
+
+UI SDK declares each element in the global `HTMLElementTagNameMap` (for example
+`"ui-toggle": UiToggleElement`), so `ref` and `onMount` infer the registered
+`Ui*Element` type from the tag rather than plain `HTMLElement`. That needs the
+`@ui-sdk/web` types in scope — importing any binding entry brings them in.
 
 ## What a binding says
 
@@ -45,15 +57,17 @@ take the event's value into the Model instead.
 | `@boozedog/effect-ui-sdk/<entry>` | One component's bindings, and only its elements |
 | `@boozedog/effect-ui-sdk/catalog` | Generated metadata: entries, tags, property and event names |
 | `@boozedog/effect-ui-sdk/agent` | UI SDK's agent bridge, unchanged |
+| `@boozedog/effect-ui-sdk/history` | UI SDK's undo/redo history helpers, unchanged |
 | `@boozedog/effect-ui-sdk/testing` | UI SDK's testing kit, unchanged |
 | `@boozedog/effect-ui-sdk/observe` | UI SDK's observation helpers, unchanged |
 | `@boozedog/effect-ui-sdk/shortcuts` | UI SDK's shortcut manager, unchanged |
 
 ## Generated files
 
-`src/entries/*.ts` and `src/catalog.ts` are generated. Do not edit them; change
-`scripts/generate.mjs` and run `pnpm generate`. `pnpm check:generated` fails when
-the committed bindings are older than the installed `@ui-sdk/web`.
+`src/entries/*.ts`, `src/index.ts` and `src/catalog.ts` are generated. Do not
+edit them; change `scripts/generate.mjs` and run `pnpm generate`.
+`pnpm check:generated` fails when the committed bindings are older than the
+installed `@ui-sdk/web`.
 
 Property and event types are as narrow as the manifest allows. Anything the
 manifest describes with a generic, an element, a function or a template literal

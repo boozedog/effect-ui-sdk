@@ -4,13 +4,7 @@ import { Html } from "@effect/ui/html"
 import { Schema } from "effect"
 import { entries, uiSdkVersion, type Binding, type Entry } from "@boozedog/effect-ui-sdk/catalog"
 import { Foot, Masthead } from "./chrome"
-import { href, matches, type Query } from "./query"
-
-const PageProps = Schema.Struct({
-  only: Schema.Array(Schema.String),
-  style: Schema.Literals(["uisdk", "daisy"]),
-  theme: Schema.NullOr(Schema.Literals(["light", "dark", "cupcake"])),
-})
+import { href, matches, PageProps, type Query } from "./query"
 
 const tagsOf = (group: Entry, only: ReadonlyArray<string>): ReadonlyArray<Binding> =>
   only.length === 0 || only.includes(group.entry) || only.includes(group.namespace.toLowerCase())

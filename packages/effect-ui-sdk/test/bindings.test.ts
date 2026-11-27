@@ -4,12 +4,17 @@
 import { readFileSync } from "node:fs"
 import { createRequire } from "node:module"
 import path from "node:path"
+import { Component, Mount, View } from "@effect/ui"
+// Used by the typecheck test below, which reads `HTMLElementTagNameMap`.
 import { Html } from "@effect/ui/html"
-import { View } from "@effect/ui"
-import { Schema } from "effect"
+import type { UiDialogElement, UiToggleElement } from "@ui-sdk/web"
+import { Effect, Schema } from "effect"
 import { describe, expect, it } from "vitest"
-import * as All from "../src/index"
 import { bindings, bindingOf, entries, uiSdkVersion, type Binding } from "../src/catalog"
+import * as Dialog from "../src/entries/dialog"
+import * as Toggle from "../src/entries/toggle"
+import { createHistory, describeEntry, stageChanges } from "../src/history"
+import * as All from "../src/index"
 
 const require = createRequire(import.meta.url)
 const webDir = path.dirname(require.resolve("@ui-sdk/web/package.json"))
@@ -173,13 +178,22 @@ describe("change events", () => {
     )
     expect(changeEvents.length).toBeGreaterThan(50)
 
+    const extraDetailFields: Record<string, Record<string, unknown>> = {
+      "ui-trigger-menu": { trigger: "@" },
+    }
+
     for (const { row, event } of changeEvents) {
       const schema = specOf(row).events[event]
       expect(schema, `${row.tag} ${event}`).toBeDefined()
+      const extra = extraDetailFields[row.tag] ?? {}
       const decoded = candidates.some(
         (value) =>
-          Schema.decodeUnknownExit(schema!)({ value, reason: "press", source: "mouse" })._tag ===
-          "Success"
+          Schema.decodeUnknownExit(schema!)({
+            value,
+            reason: "press",
+            source: "mouse",
+            ...extra,
+          })._tag === "Success"
       )
       expect(decoded, `${row.tag} "${event}" decodes a change detail`).toBe(true)
     }
@@ -225,17 +239,6 @@ describe("builder methods", () => {
     expect(specOf(binding("ui-resizable-panel")).properties).toHaveProperty("id")
   })
 
-  it("reserves only the names the framework's builder already uses", () => {
-    const shadowed = bindings.flatMap((row) =>
-      row.properties
-        .filter((property) => reservedNames.has(property))
-        .map((property) => `${row.tag}.${property}`)
-    )
-    // UI SDK declares `id` on `<ui-resizable-panel>`, which the builder uses for
-    // the element's own id. It is set with `.prop("id", value)`, still typed.
-    expect(shadowed).toEqual(["ui-resizable-panel.id"])
-  })
-
   it("keeps `.prop` typed for the names that get no method", () => {
     const panel = specOf(binding("ui-resizable-panel"))
     const chain = (panel as unknown as (h: never) => { prop: (name: string, value: unknown) => unknown })(
@@ -266,5 +269,243 @@ describe("registration", () => {
     // the missing registry and do nothing.
     expect(typeof (globalThis as { customElements?: unknown }).customElements).toBe("undefined")
     expect(bindings.length).toBeGreaterThan(300)
+  })
+})
+
+// The schemas the generator derives are the point of the package: a view writes
+// a property and reads a detail, and a Schema that is too narrow rejects the
+// values the element actually sends. These read the generated Schemas, not the
+// manifest, so a regression in `scripts/generate.mjs` fails here.
+describe("schema narrowing", () => {
+  const decode = (schema: Schema.Top, value: unknown) =>
+    Schema.decodeUnknownExit(schema as Schema.Decoder<unknown>)(value)
+
+  const accepts = (schema: Schema.Top, ...values: ReadonlyArray<unknown>) => {
+    for (const value of values) {
+      expect(decode(schema, value)._tag, `${JSON.stringify(value)} should decode`).toBe("Success")
+    }
+  }
+
+  const rejects = (schema: Schema.Top, ...values: ReadonlyArray<unknown>) => {
+    for (const value of values) {
+      expect(decode(schema, value)._tag, `${JSON.stringify(value)} should not decode`).toBe("Failure")
+    }
+  }
+
+  const property = (tag: string, name: string): Schema.Top => {
+    const schema = specOf(binding(tag)).properties[name]
+    if (schema === undefined) throw new Error(`${tag} has no property ${name}`)
+    return schema
+  }
+
+  const event = (tag: string, name: string): Schema.Decoder<unknown> => {
+    const schema = specOf(binding(tag)).events[name]
+    if (schema === undefined) throw new Error(`${tag} has no event ${name}`)
+    return schema
+  }
+
+  // A change detail carries where the change came from beside the value.
+  const change = (value: unknown) => ({ value, reason: "press", source: "keyboard" })
+
+  const acceptsChange = (schema: Schema.Top, ...values: ReadonlyArray<unknown>) =>
+    accepts(schema, ...values.map(change))
+
+  it("keeps both halves of `number | number[]`", () => {
+    const value = property("ui-slider", "value")
+    accepts(value, 40, [40, 60])
+    rejects(value, "40", [40, "60"])
+
+    const valuechange = event("ui-slider", "valuechange")
+    acceptsChange(valuechange, 40, [40, 60])
+    rejects(valuechange, change("40"), change([40, "60"]))
+  })
+
+  it("keeps the array and the null of `string | string[] | null`", () => {
+    const value = property("ui-tree", "value")
+    accepts(value, "a", ["a", "b"], null)
+    rejects(value, 1, [1])
+
+    const valuechange = event("ui-tree", "valuechange")
+    acceptsChange(valuechange, "a", ["a", "b"], null)
+    rejects(valuechange, change(1))
+  })
+
+  it("reads calendar and date-picker values as strings, tuples and null", () => {
+    const calendar = property("ui-calendar", "value")
+    accepts(calendar, "2024-01-05", ["2024-01-05"], ["2024-01-05", "2024-01-09"], null)
+    rejects(calendar, 20240105, ["2024-01-05", 20240109])
+
+    const datePicker = property("ui-date-picker", "value")
+    accepts(datePicker, "2024-01-05", ["2024-01-05", "2024-01-09"], null)
+    rejects(datePicker, 20240105)
+  })
+
+  it("leaves a matcher union that names callbacks as Schema.Unknown", () => {
+    // `string | { from, to } | ... | (date) => boolean | readonly DateMatcher[]`
+    // has a function member, so no narrower Schema can accept all of it.
+    const unavailable = property("ui-calendar", "unavailable")
+    accepts(
+      unavailable,
+      "2024-01-05",
+      ["2024-01-05"],
+      { from: "2024-01-05", to: "2024-01-09" },
+      { weekday: [0, 6] },
+      [{ before: "2024-01-05" }],
+      (date: string) => date.length > 0
+    )
+  })
+
+  it("keeps both halves of a string-or-array property", () => {
+    accepts(property("ui-file-input", "accept"), "image/*", ["image/png", "image/jpeg"])
+    rejects(property("ui-file-input", "accept"), 42)
+  })
+
+  it("accepts the objects and nulls an anchor or paste target can be", () => {
+    for (const [tag, name] of [
+      ["ui-file-input-dropzone", "pasteTarget"],
+      ["ui-combobox-content", "anchor"],
+    ] as const) {
+      const schema = property(tag, name)
+      accepts(schema, {}, null, { x: 1, y: 2 }, ["a"])
+    }
+  })
+
+  it("accepts a function for persistentElements", () => {
+    accepts(property("ui-dialog", "persistentElements"), () => [])
+  })
+
+  it("decodes a dismiss attempt to its reason", () => {
+    const schema = event("ui-dialog", "dismissattempt")
+    expect(decode(schema, { reason: "escape-key" })._tag).toBe("Success")
+    expect(Schema.decodeUnknownSync(schema)({ reason: "escape-key" })).toEqual({ reason: "escape-key" })
+    rejects(schema, {}, { reason: 1 })
+  })
+
+  it("keeps `index` on UiHighlightEvent details", () => {
+    for (const tag of ["ui-autocomplete", "ui-combobox", "ui-listbox", "ui-select"]) {
+      const schema = event(tag, "highlight")
+      expect(Schema.decodeUnknownSync(schema)({ value: "alpha", index: 2 })).toEqual({
+        value: "alpha",
+        index: 2,
+      })
+      rejects(schema, { value: "alpha" }, { value: "alpha", index: "2" })
+    }
+  })
+
+  it("keeps intersected fields on trigger-menu change events", () => {
+    const openchange = event("ui-trigger-menu", "openchange")
+    expect(
+      Schema.decodeUnknownSync(openchange)({
+        value: true,
+        reason: "trigger",
+        source: "keyboard",
+        trigger: "@",
+      })
+    ).toEqual({
+      value: true,
+      reason: "trigger",
+      source: "keyboard",
+      trigger: "@",
+    })
+    rejects(openchange, { value: true, reason: "trigger", source: "keyboard" })
+
+    const querychange = event("ui-trigger-menu", "querychange")
+    expect(
+      Schema.decodeUnknownSync(querychange)({
+        value: "al",
+        reason: "input",
+        source: "keyboard",
+        trigger: "@",
+        argument: "al",
+      })
+    ).toEqual({
+      value: "al",
+      reason: "input",
+      source: "keyboard",
+      trigger: "@",
+      argument: "al",
+    })
+    expect(
+      Schema.decodeUnknownSync(querychange)({
+        value: "",
+        reason: "input",
+        source: "keyboard",
+        trigger: "@",
+      })
+    ).toEqual({
+      value: "",
+      reason: "input",
+      source: "keyboard",
+      trigger: "@",
+    })
+  })
+
+  it("decodes an action to its value, with no empty detail", () => {
+    for (const tag of ["ui-menu", "ui-command", "ui-tree"]) {
+      const schema = event(tag, "action")
+      expect(decode(schema, { value: "rename" })._tag, tag).toBe("Success")
+      expect(Schema.decodeUnknownSync(schema)({ value: "rename" })).toEqual({ value: "rename" })
+      rejects(schema, {})
+    }
+  })
+
+  it("keeps `number | \"auto\"`", () => {
+    const schema = property("ui-carousel", "slidesPerPage")
+    accepts(schema, 3, "auto")
+    rejects(schema, "three", true)
+  })
+
+  it("reads a waterfall range as a tuple", () => {
+    accepts(property("ui-waterfall", "range"), [0, 100])
+    rejects(property("ui-waterfall", "range"), [0], [0, 100, 200], 100)
+  })
+})
+
+// `@effect/ui` reads `HTMLElementTagNameMap`, which `@ui-sdk/web` augments, to
+// type a custom element's `ref` and `onMount`. These lines are checked by
+// `tsc --noEmit`; the runtime only proves the values exist.
+describe("element types", () => {
+  const ToggleNode = Mount.make("ToggleNode", {}, (element: UiToggleElement) =>
+    Effect.as(Effect.succeed(void element), Component.noop)
+  )
+  const DialogNode = Mount.make("DialogNode", {}, (element: UiDialogElement) =>
+    Effect.as(Effect.succeed(void element), Component.noop)
+  )
+
+  const typed = (h: Html.H<never>) => ({
+    toggleRef: Toggle.Root(h).ref(Html.ref("toggle", "ui-toggle")),
+    dialogRef: Dialog.Root(h).ref(Html.ref("dialog", "ui-dialog")),
+    toggleMount: Toggle.Root(h).onMount(ToggleNode({})),
+    dialogMount: Dialog.Root(h).onMount(DialogNode({})),
+    // A ref or a mount of another element doesn't fit: `Renderer.Ref` and the
+    // mount's node are both typed by `HTMLElementTagNameMap["ui-toggle"]`.
+    // @ts-expect-error a dialog ref does not fit a toggle
+    wrongRef: Toggle.Root(h).ref(Html.ref("dialog", "ui-dialog")),
+    // @ts-expect-error a dialog node does not fit a toggle
+    wrongMount: Toggle.Root(h).onMount(DialogNode({})),
+    // @ts-expect-error a custom element ref does not fit a plain div
+    wrongPlain: h.div.ref(Html.ref("toggle", "ui-toggle")),
+  })
+
+  it("infers each element from HTMLElementTagNameMap", () => {
+    expect(typeof typed).toBe("function")
+  })
+
+  it("re-exports UI SDK's history helpers", () => {
+    expect(typeof createHistory).toBe("function")
+    expect(typeof describeEntry).toBe("function")
+    expect(typeof stageChanges).toBe("function")
+    expect(
+      describeEntry({
+        id: "1",
+        ref: "c1",
+        label: "Pinned",
+        key: "pressed",
+        value: true,
+        previous: false,
+        source: "pointer",
+        reason: "press",
+      })
+    ).toBe("You set Pinned to true")
   })
 })

@@ -28,12 +28,15 @@ export const Root = Html.customElement({
       value: Schema.Boolean,
       reason: Schema.String,
       source: Schema.String,
+      trigger: Schema.NullOr(Schema.String),
     }),
     "openchangecomplete": Schema.Struct({ value: Schema.Boolean }),
     "querychange": Schema.Struct({
       value: Schema.String,
       reason: Schema.String,
       source: Schema.String,
+      trigger: Schema.String,
+      argument: Schema.optional(Schema.String),
     }),
     "itemselect": Schema.Unknown,
     "dismissattempt": Schema.Struct({ reason: Schema.String }),
@@ -47,6 +50,7 @@ export const Root = Html.customElement({
 export const Content = Html.customElement({
   tag: "ui-trigger-menu-content",
   properties: {
+    anchor: Schema.Unknown,
     side: Schema.Literals(["top", "bottom", "left", "right", "start", "end"]),
     align: Schema.Literals(["center", "start", "end"]),
     sideOffset: Schema.Number,
@@ -54,7 +58,6 @@ export const Content = Html.customElement({
     collisionPadding: Schema.Number,
     arrowPadding: Schema.Number,
     container: Schema.Unknown,
-    anchor: Schema.String,
     keepMounted: Schema.Boolean,
   },
   events: {

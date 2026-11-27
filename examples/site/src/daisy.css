@@ -1,0 +1,8 @@
+/* The DaisyUI theme entry for this app. The package stylesheet is the Tailwind
+   entry (import, plugin, theme tokens, and the part styles), and it scans its
+   own source. Tailwind v4 drops classes it does not see, so this app's markup
+   has to be scanned here, relative to this file, instead of with a hardcoded
+   monorepo path inside the package. */
+@import "@boozedog/effect-ui-sdk-daisy/theme.css";
+
+@source ".";

@@ -4,6 +4,7 @@
 // `theme` is a daisy theme name and is applied only in that mode.
 // Missing `view` is the catalog. Missing `style` keeps the UISDK look.
 import type { Entry } from "@boozedog/effect-ui-sdk/catalog"
+import { Schema } from "effect"
 
 export type ViewName = "catalog" | "sink"
 export type StyleName = "uisdk" | "daisy"
@@ -16,7 +17,15 @@ export type Query = {
   readonly theme: DaisyTheme | null
 }
 
-const THEMES: ReadonlyArray<DaisyTheme> = ["light", "dark", "cupcake"]
+/** The daisy themes this site offers in the theme switcher. */
+export const THEMES: ReadonlyArray<DaisyTheme> = ["light", "dark", "cupcake"]
+
+/** The props both pages take: the query, in the shape the component Schema decodes. */
+export const PageProps = Schema.Struct({
+  only: Schema.Array(Schema.String),
+  style: Schema.Literals(["uisdk", "daisy"]),
+  theme: Schema.NullOr(Schema.Literals(["light", "dark", "cupcake"])),
+})
 
 const themeOf = (value: string | null): DaisyTheme | null =>
   value !== null && (THEMES as ReadonlyArray<string>).includes(value) ? (value as DaisyTheme) : null
@@ -54,6 +63,10 @@ export const styleHref = (view: ViewName, query: Pick<Query, "only" | "style" | 
     style: query.style === "daisy" ? "uisdk" : "daisy",
     theme: query.theme,
   })
+
+/** A daisy theme link: the same `view` and `only`, `style=daisy`, and the chosen theme. */
+export const themeHref = (view: ViewName, query: Pick<Query, "only">, theme: DaisyTheme): string =>
+  href(view, { only: query.only, style: "daisy", theme })
 
 /** Same match the catalog uses: entry name, namespace, or any tag. */
 export const matches = (group: Entry, only: ReadonlyArray<string>): boolean =>

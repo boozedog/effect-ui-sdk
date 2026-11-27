@@ -12,7 +12,7 @@ export const Root = Html.customElement({
   tag: "ui-alert-dialog",
   properties: {
     open: Schema.Boolean,
-    persistentElements: Schema.Array(Schema.Unknown),
+    persistentElements: Schema.Unknown,
     container: Schema.Unknown,
     defaultOpen: Schema.Boolean,
     dismissible: Schema.Boolean,
@@ -21,7 +21,7 @@ export const Root = Html.customElement({
   },
   events: {
     "openchangecomplete": Schema.Struct({ value: Schema.Boolean }),
-    "dismissattempt": Schema.Unknown,
+    "dismissattempt": Schema.Struct({ reason: Schema.String }),
     "openchange": Schema.Struct({
       value: Schema.Boolean,
       reason: Schema.String,

@@ -28,6 +28,7 @@
     "./testing": "./src/testing.ts",
     "./observe": "./src/observe.ts",
     "./shortcuts": "./src/shortcuts.ts",
+    "./history": "./src/history.ts",
     "./catalog": "./src/catalog.ts",
     "./*": "./src/entries/*.ts",
     "./package.json": "./package.json"
@@ -48,21 +49,23 @@
     "check:generated": "node scripts/generate.mjs --check",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "prepack": "cp ../../LICENSE . && cp ../../THIRD_PARTY_NOTICES.md . && cp -r ../../LICENSES LICENSES"
+    "prepack": "cp ../../LICENSE . && cp ../../THIRD_PARTY_NOTICES.md . && cp -r ../../LICENSES LICENSES",
+    "postpack": "rm -f LICENSE THIRD_PARTY_NOTICES.md && rm -rf LICENSES"
   },
   "dependencies": {
-    "@ui-sdk/web": "0.1.0-beta.17"
+    "@ui-sdk/web": "0.1.0-beta.18"
   },
   "peerDependencies": {
-    "@effect/ui": "https://pkg.pr.new/Effect-TS/ui/@effect/ui@87a704b",
-    "@ui-sdk/core": "0.1.0-beta.17",
-    "effect": "4.1.6"
+    "@effect/ui": "https://pkg.pr.new/Effect-TS/ui/@effect/ui@22128c6",
+    "@ui-sdk/core": "^0.1.0-beta.18",
+    "effect": "^4.1.7"
   },
   "devDependencies": {
-    "@effect/ui": "https://pkg.pr.new/Effect-TS/ui/@effect/ui@87a704b",
+    "@effect/ui": "https://pkg.pr.new/Effect-TS/ui/@effect/ui@22128c6",
     "@types/node": "24.10.1",
-    "@ui-sdk/core": "0.1.0-beta.17",
-    "effect": "4.1.6",
+    "@ui-sdk/core": "0.1.0-beta.18",
+    "effect": "4.1.7",
+    "jsdom": "31.0.1",
     "typescript": "5.9.3",
     "vitest": "5.1.2"
   },

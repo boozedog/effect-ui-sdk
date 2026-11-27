@@ -34,7 +34,7 @@ export const Root = Html.customElement({
 })
 
 /**
- * Part of `<ui-rating>`.
+ * A star isn't a choice, its radios are: like core, it's keyed by nothing, so an agent doesn't offer the stars as items.
  * @see https://ui-sdk.dev/docs/web-components/components/rating
  */
 export const Item = Html.customElement({
