@@ -34,7 +34,7 @@ export const Masthead = <Msg>(h: Html.H<Msg>, view: ViewName, query: NavQuery) =
     h.h1.children("Effect UI SDK bindings"),
     h.p.class("lede").children(
       view === "sink"
-        ? "One tile per UI SDK entry. The first batch is a live Effect UI round-trip. Every other entry is a gap: its name, how many tags it has, and a link to that entry in the catalog."
+        ? "One live Effect UI round-trip tile per UI SDK entry, each mounted as an independent child component. Use ?only=<entry> to isolate a subset."
         : "Every UI SDK web component as a typed Effect UI Html.customElement binding. This view is the generated catalog. The kitchen sink holds the live tiles."
     ),
     h.p.children(
