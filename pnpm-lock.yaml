@@ -98,6 +98,9 @@ importers:
       '@boozedog/effect-ui-sdk':
         specifier: workspace:*
         version: link:../effect-ui-sdk
+      '@ui-sdk/core':
+        specifier: 0.1.0-beta.18
+        version: 0.1.0-beta.18
       typescript:
         specifier: 5.9.3
         version: 5.9.3

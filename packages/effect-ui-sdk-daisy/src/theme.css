@@ -1,7 +1,33 @@
-/* UISDK injects behavior CSS into the `ui-sdk` layer. Declaring the layer
-   here, before Tailwind, lets the rules below beat that behavior CSS.
-   Do not load `@ui-sdk/core/web.css` with this file. The two themes fight. */
-@layer ui-sdk;
+/* The DaisyUI entry for an app that uses @boozedog/effect-ui-sdk.
+ *
+ * This sheet layers on top of UISDK's own `@ui-sdk/core/web.css` instead of
+ * replacing it, and imports it into a layer of its own (see below) so both
+ * sheets keep their cascade order no matter who loads what first. The
+ * structural rules (popover positioning, chevrons, focus rings, the rest of
+ * the catalog) stay where UISDK put them; this file only adds the deltas
+ * daisyUI can express and `web.css` cannot: three radius roles, `--border`,
+ * `--depth`, and the neutral menu/tooltip surfaces.
+ *
+ * The last layer is declared after `utilities` on purpose. daisyUI's component
+ * rules live in `utilities`, so the `[data-slot]` deltas below have to come
+ * after them to win. A `@layer components` block would not: it is earlier.
+ *
+ * `web.css` is imported into its own layer, `ui-sdk-theme`, instead of into
+ * the bare `ui-sdk` layer that `@ui-sdk/web` injects at runtime. Two reasons:
+ *
+ * 1. The runtime sheet is prepended to `<head>` before this file is parsed, so
+ *    `ui-sdk` is always registered first and nothing can move it afterwards.
+ *    Behavior CSS belongs at the bottom, so that is where it stays.
+ * 2. Tailwind preflight lives in `base` and sets
+ *    `* { margin: 0; padding: 0; border: 0 }`. If `web.css` were still inside
+ *    the first-registered `ui-sdk` layer, preflight would come after it and
+ *    blank every padding, margin, and border `web.css` sets, because layers
+ *    beat specificity. Nesting it into `ui-sdk-theme`, declared after `base`,
+ *    puts `web.css` above preflight and below daisyUI's `utilities`.
+ */
+@layer ui-sdk, theme, base, ui-sdk-theme, components, utilities, daisy-overrides;
+
+@import "@ui-sdk/core/web.css" layer(ui-sdk-theme);
 @import "tailwindcss";
 @plugin "daisyui" {
   themes: light --default, dark --prefersdark, cupcake;
@@ -12,216 +38,233 @@
 @source ".";
 
 /*
-  Short bridge for the custom properties the styled parts actually read
-  (the same ones `web.css` uses for those parts). Not a map of every tag.
-  `--ui-icon` is set on the indicator, which is the part that masks with it.
+  Bridge every `--ui-*` custom property `web.css` reads, so parts without a
+  daisy class still pick up the active daisy theme (colors, one radius, fonts,
+  the depth shadow). Unlayered: a custom property set here beats the one
+  `web.css` sets inside `ui-sdk-theme`. `--color-*`, `--radius-*`,
+  `--border`, `--depth`, and `--size-*` come from daisyUI's `@layer base`.
 */
 :root,
 [data-theme] {
   --ui-background: var(--color-base-100);
   --ui-foreground: var(--color-base-content);
+  --ui-muted: var(--color-base-200);
+  --ui-muted-foreground: color-mix(in oklab, var(--color-base-content) 62%, transparent);
+  --ui-border: var(--color-base-300);
+  --ui-input: color-mix(in oklab, var(--color-base-content) 20%, transparent);
   --ui-primary: var(--color-primary);
   --ui-primary-foreground: var(--color-primary-content);
-  --ui-muted: var(--color-base-200);
-  --ui-muted-foreground: color-mix(in oklch, var(--color-base-content) 62%, transparent);
-  --ui-border: var(--color-base-300);
-  --ui-input: var(--color-base-300);
-  --ui-radius: var(--radius-field, 0.5rem);
-  --ui-icon-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
-  --ui-icon-minus: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M5 12h14'/%3E%3C/svg%3E");
+  --ui-destructive: var(--color-error);
+  --ui-ring: color-mix(in oklab, var(--color-primary) 35%, transparent);
+  --ui-ring-border: var(--color-primary);
+  --ui-overlay: color-mix(in oklab, var(--color-base-content) 40%, transparent);
+  /* daisyUI's depth: an inset hairline plus a soft drop. `--depth: 0` zeroes
+     both terms, which is daisy's "no depth" theme. */
+  --ui-shadow:
+    0 calc(var(--depth, 1) * 1px) calc(var(--depth, 1) * 2px)
+      oklch(0% 0 0 / calc(var(--depth, 1) * 8%)),
+    0 calc(var(--depth, 1) * 8px) calc(var(--depth, 1) * 24px)
+      calc(var(--depth, 1) * -8px) oklch(0% 0 0 / calc(var(--depth, 1) * 16%));
+  --ui-radius: var(--radius-field);
+  --ui-spacing: var(--size-field, 0.25rem);
+  --ui-font-size: 0.875rem;
+  --ui-line-height: 1.5;
+  --ui-font-sans: var(--default-font-family, ui-sans-serif, system-ui, sans-serif);
+  --ui-font-mono: var(--default-mono-font-family, ui-monospace, SFMono-Regular, monospace);
 }
 
-/* `.btn` does not know `data-pressed` or `data-selected`. Those attributes
-   land on the inner button, which is the element the docs say to style. */
-button.btn[data-pressed],
-button.btn[data-selected] {
-  background-color: var(--color-primary);
-  border-color: var(--color-primary);
-  color: var(--color-primary-content);
+/* Forced themes keep `color-scheme` inside daisyUI's `@layer base`, and
+   `site.css` sets `light dark` unlayered, which would otherwise win. These two
+   rules are deliberately unlayered and loaded after the page stylesheet. A
+   theme left unset still follows `light` / `prefers-color-scheme` through
+   `dark --prefersdark`, so `light dark` stays correct there. */
+[data-theme="light"],
+[data-theme="cupcake"] {
+  color-scheme: light;
 }
 
-button.btn[data-slot="accordion-trigger"] {
-  width: 100%;
-  justify-content: flex-start;
+[data-theme="dark"] {
+  color-scheme: dark;
 }
 
-button.btn[data-slot="select-trigger"] {
-  min-width: 9rem;
-  justify-content: space-between;
-}
+@layer daisy-overrides {
+  /* daisy `.checkbox` draws the tick with `::before`. UISDK's checkbox also
+     renders an indicator part, so hide that one or the mark doubles. */
+  :where(.checkbox) [data-slot="checkbox-indicator"] {
+    display: none;
+  }
 
-.effect-ui-daisy-popup {
-  background: var(--color-base-100);
-  color: var(--color-base-content);
-  border: 1px solid var(--color-base-300);
-  border-radius: var(--radius-box, 1rem);
-  padding: 0.75rem 1rem;
-}
+  /* Tabs. daisy's `.tab` keys off `.tabs > .tab`, and UISDK inserts a
+     `display: contents` `ui-tabs-tab` between the list and the button, so
+     `.tab` never matches there. Mirror the two `.tabs-border` rules that
+     matter: a full-height tab row with a 3px bar under the selected tab. */
+  [data-slot="tabs-list"]:is(.tabs) {
+    border-bottom: 0;
+  }
 
-[data-slot="dialog-content"].effect-ui-daisy-popup {
-  position: fixed;
-  inset: 0;
-  z-index: 50;
-  width: min(28rem, calc(100% - 2rem));
-  height: fit-content;
-  max-height: calc(100dvh - 2rem);
-  margin: auto;
-  padding: 1.25rem 1.5rem;
-}
+  :where(.tabs) [data-slot="tabs-tab"] {
+    position: relative;
+    height: calc(var(--size-field, 0.25rem) * 10);
+    margin-bottom: 0;
+    padding-inline: 0.75rem;
+    border: 0;
+    border-radius: var(--radius-field);
+    background: none;
+    color: color-mix(in oklab, var(--color-base-content) 50%, transparent);
+    font-size: 0.875rem;
+  }
 
-[data-slot="tooltip-content"].effect-ui-daisy-popup {
-  padding: 0.25rem 0.5rem;
-}
+  :where(.tabs) [data-slot="tabs-tab"]:hover {
+    color: var(--color-base-content);
+  }
 
-[data-slot="select-content"].effect-ui-daisy-popup,
-[data-slot="menu-content"].effect-ui-daisy-popup {
-  min-width: max(10rem, var(--anchor-width, 10rem));
-  padding: 0.25rem;
-}
+  :where(.tabs) [data-slot="tabs-tab"]::before {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0.75rem;
+    width: calc(100% - 1.5rem);
+    height: 3px;
+    border-radius: var(--radius-field);
+    background: none;
+  }
 
-[data-slot="dialog-backdrop"] {
-  background: color-mix(in oklch, var(--color-base-content) 40%, transparent);
-}
+  :where(.tabs) [data-slot="tabs-tab"][aria-selected="true"] {
+    border-color: transparent;
+    color: var(--color-base-content);
+  }
 
-.effect-ui-daisy-item {
-  display: flex;
-  align-items: center;
-  min-height: 2rem;
-  padding: 0.25rem 0.5rem;
-  border-radius: var(--radius-field, 0.25rem);
-  cursor: default;
-}
+  :where(.tabs) [data-slot="tabs-tab"][aria-selected="true"]::before {
+    background: currentColor;
+  }
 
-.effect-ui-daisy-item[data-highlighted],
-.effect-ui-daisy-item[data-selected] {
-  background: var(--color-base-200);
-}
+  /* Box surfaces: dialog, popover, hover card, and the menu / select content.
+     daisy's box radius, `--border` width, and depth shadow. `.modal` and
+     `.dropdown` are not applied: they would hide or re-place these popovers. */
+  :is(
+    [data-slot="dialog-content"],
+    [data-slot="alert-dialog-content"],
+    [data-slot="popover-content"],
+    [data-slot="hover-card-content"],
+    [data-slot="menu-content"],
+    [data-slot="select-content"],
+    [data-slot="combobox-content"],
+    [data-slot="autocomplete-content"],
+    [data-slot="command-content"]
+  ) {
+    border-width: var(--border);
+    border-radius: var(--radius-box);
+    box-shadow: var(--ui-shadow);
+  }
 
-label:has(> .effect-ui-daisy-checkbox),
-label:has(> .effect-ui-daisy-switch) {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-}
+  /* The select trigger is a field, so it takes daisy `.select`'s surface:
+     base-100, a `--border` wide 20% content hairline, field radius, and the
+     inset depth line. daisy `.select` itself only styles a native select. */
+  [data-slot="select-trigger"] {
+    background: var(--color-base-100);
+    border-width: var(--border);
+    border-style: solid;
+    border-color: color-mix(in oklab, var(--color-base-content) 20%, transparent);
+    border-radius: var(--radius-field);
+    box-shadow:
+      0 1px color-mix(in oklab, var(--color-base-content) calc(var(--depth, 1) * 2%), transparent)
+        inset,
+      0 -1px oklch(100% 0 0 / calc(var(--depth, 1) * 10%)) inset;
+  }
 
-.effect-ui-daisy-checkbox {
-  display: inline-flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  width: 1rem;
-  height: 1rem;
-  padding: 0;
-  border: 1px solid var(--ui-input);
-  border-radius: calc(var(--ui-radius) / 2);
-  background: var(--ui-background);
-  color: var(--ui-primary-foreground);
-  cursor: pointer;
-}
+  [data-slot="select-trigger"]:is(:focus-visible, [data-open]) {
+    border-color: var(--color-primary);
+  }
 
-.effect-ui-daisy-checkbox:is([data-checked], [data-indeterminate]) {
-  border-color: var(--ui-primary);
-  background: var(--ui-primary);
-}
+  /* daisy's tooltip is neutral on neutral-content, not a base-100 popup. */
+  [data-slot="tooltip-content"] {
+    background: var(--color-neutral);
+    border-color: transparent;
+    border-radius: var(--radius-field);
+    color: var(--color-neutral-content);
+  }
 
-.effect-ui-daisy-checkbox-indicator {
-  --ui-icon: var(--ui-icon-check);
-  display: flex;
-  width: 0.75rem;
-  height: 0.75rem;
-  background: currentColor;
-  mask: var(--ui-icon) center / contain no-repeat;
-}
+  /* daisy's highlighted menu item is `--menu-active-bg: neutral` with
+     `--menu-active-fg: neutral-content`, not a base-200 shift. `.menu` itself
+     is not applied: its items are `li > a`, not these parts. */
+  :is(
+      [data-slot="menu-item"],
+      [data-slot="menu-checkbox-item"],
+      [data-slot="menu-radio-item"],
+      [data-slot="select-item"],
+      [data-slot="combobox-item"],
+      [data-slot="autocomplete-item"],
+      [data-slot="command-item"],
+      [data-slot="listbox-item"]
+    ):is([data-highlighted], [data-selected]) {
+    background: var(--color-neutral);
+    color: var(--color-neutral-content);
+  }
 
-.effect-ui-daisy-checkbox-indicator[data-unchecked] {
-  visibility: hidden;
-}
+  /* Switch. daisy `.toggle` is an input with a `::before` thumb; this is a
+     track element with a thumb child, so copy the tokens instead: `--border`,
+     `--size-selector`, `--radius-selector`, and `--depth`. */
+  [data-slot="switch"] {
+    --daisy-switch-size: calc(var(--size-selector, 0.25rem) * 6);
+    --daisy-switch-p: calc(var(--daisy-switch-size) * 0.125);
+    --daisy-switch-color: color-mix(in oklab, var(--color-base-content) 50%, transparent);
+    width: calc(var(--daisy-switch-size) * 2 - (var(--border) + var(--daisy-switch-p)) * 2);
+    height: var(--daisy-switch-size);
+    padding: var(--daisy-switch-p);
+    border: var(--border) solid var(--daisy-switch-color);
+    border-radius: calc(
+      var(--radius-selector) + min(var(--daisy-switch-p), var(--radius-selector) * 3) +
+        min(var(--border), var(--radius-selector) * 3)
+    );
+    background: var(--color-base-100);
+    color: var(--daisy-switch-color);
+    box-shadow: 0 1px color-mix(in oklab, currentColor calc(var(--depth, 1) * 10%), transparent)
+      inset;
+  }
 
-.effect-ui-daisy-checkbox-indicator[data-indeterminate] {
-  --ui-icon: var(--ui-icon-minus);
-}
+  [data-slot="switch"][data-checked] {
+    border-color: var(--color-base-content);
+    background: var(--color-base-100);
+    color: var(--color-base-content);
+  }
 
-.effect-ui-daisy-switch {
-  display: inline-flex;
-  flex-shrink: 0;
-  align-items: center;
-  width: 2rem;
-  height: 1.125rem;
-  padding: 2px;
-  border: 1px solid var(--ui-input);
-  border-radius: 999px;
-  background: var(--ui-muted);
-  cursor: pointer;
-}
+  [data-slot="switch-thumb"] {
+    width: calc(var(--daisy-switch-size) - (var(--border) + var(--daisy-switch-p)) * 2);
+    height: calc(var(--daisy-switch-size) - (var(--border) + var(--daisy-switch-p)) * 2);
+    border-radius: var(--radius-selector);
+    background: currentColor;
+    box-shadow:
+      0 -1px oklch(0% 0 0 / calc(var(--depth, 1) * 10%)) inset,
+      0 8px 0 -4px oklch(100% 0 0 / calc(var(--depth, 1) * 10%)) inset,
+      0 1px color-mix(in oklab, currentColor calc(var(--depth, 1) * 10%), transparent);
+  }
 
-.effect-ui-daisy-switch[data-checked] {
-  border-color: var(--ui-primary);
-  background: var(--ui-primary);
-}
+  /* Slider. daisy `.range` is an `input[type=range]`; these are track,
+     indicator, and thumb elements, so copy `.range`'s tokens. */
+  [data-slot="slider-track"] {
+    height: calc(var(--size-selector, 0.25rem) * 3);
+    border-radius: var(--radius-selector);
+    background: color-mix(in oklab, var(--color-base-content) 10%, transparent);
+  }
 
-.effect-ui-daisy-switch-thumb {
-  width: 0.75rem;
-  height: 0.75rem;
-  border-radius: 999px;
-  background: var(--color-base-content);
-}
+  [data-slot="slider-indicator"] {
+    border-radius: inherit;
+    background: var(--color-base-content);
+  }
 
-.effect-ui-daisy-switch-thumb[data-checked] {
-  margin-inline-start: auto;
-  background: var(--ui-primary-foreground);
-}
-
-.effect-ui-daisy-slider {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  width: 100%;
-  min-width: 12rem;
-}
-
-[data-slot="slider-control"] {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  height: 1.25rem;
-}
-
-.effect-ui-daisy-slider-track {
-  width: 100%;
-  height: 0.25rem;
-  border-radius: 999px;
-  background: var(--ui-muted);
-}
-
-.effect-ui-daisy-slider-indicator {
-  border-radius: inherit;
-  background: var(--ui-primary);
-}
-
-.effect-ui-daisy-slider-thumb {
-  width: 1rem;
-  height: 1rem;
-  border: 2px solid var(--ui-primary);
-  border-radius: 999px;
-  background: var(--ui-background);
-}
-
-.effect-ui-daisy-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem;
-  border-bottom: 1px solid var(--ui-border);
-  padding-bottom: 0.25rem;
-}
-
-.effect-ui-daisy-panel {
-  color: var(--ui-muted-foreground);
-  padding-block: 0.25rem 0.5rem;
-}
-
-.effect-ui-daisy-checkbox:focus-visible,
-.effect-ui-daisy-switch:focus-visible,
-.effect-ui-daisy-slider-thumb:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
+  [data-slot="slider-thumb"] {
+    --daisy-slider-thumb: calc(var(--size-selector, 0.25rem) * 6);
+    --daisy-slider-p: calc(var(--daisy-slider-thumb) / 6);
+    width: var(--daisy-slider-thumb);
+    height: var(--daisy-slider-thumb);
+    border: var(--daisy-slider-p) solid var(--color-base-content);
+    border-radius: calc(
+      var(--radius-selector) + min(var(--daisy-slider-p), var(--radius-selector) * 3)
+    );
+    background: var(--color-base-100);
+    box-shadow:
+      0 -1px oklch(0% 0 0 / calc(var(--depth, 1) * 10%)) inset,
+      0 8px 0 -4px oklch(100% 0 0 / calc(var(--depth, 1) * 10%)) inset,
+      0 1px color-mix(in oklab, var(--color-base-content) calc(var(--depth, 1) * 10%), transparent);
+  }
 }

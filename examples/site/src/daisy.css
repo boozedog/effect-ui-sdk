@@ -6,3 +6,15 @@
 @import "@boozedog/effect-ui-sdk-daisy/theme.css";
 
 @source ".";
+
+/* Page tokens that have to be a *mix* of a daisy value. `site.css` loads first
+   and is unlayered, so it cannot express these as `var(x, fallback)` without
+   changing the default page: a fallback inside `color-mix` still mixes, and the
+   default (non-daisy) page would turn translucent. This file is only requested
+   with `?style=daisy`, so overriding the two tokens here leaves the default
+   `web.css` page exactly as it was. Unlayered, same specificity as `site.css`,
+   loaded after it, so these win. */
+:root {
+  --page-muted: color-mix(in oklab, var(--color-base-content) 62%, transparent);
+  --page-accent: var(--color-primary);
+}

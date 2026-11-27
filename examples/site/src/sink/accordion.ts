@@ -57,7 +57,6 @@ const Definition = Html.component({
                   Accordion.Trigger(h).children(
                     h.button
                       .attr("type", "button")
-                      .class(face(h.props.daisy, classes.button))
                       .children(item.label)
                   )
                 ),
