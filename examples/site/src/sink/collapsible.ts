@@ -44,7 +44,6 @@ const Definition = Html.component({
           Collapsible.Trigger(h).children(
             h.button
               .attr("type", "button")
-              .class(face(h.props.daisy, classes.button))
               .children("Order details")
           ),
           Collapsible.Panel(h)

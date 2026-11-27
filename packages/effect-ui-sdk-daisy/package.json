@@ -45,10 +45,12 @@
     "tailwindcss": "4.3.5"
   },
   "peerDependencies": {
-    "@boozedog/effect-ui-sdk": "workspace:*"
+    "@boozedog/effect-ui-sdk": "workspace:*",
+    "@ui-sdk/core": "^0.1.0-beta.18"
   },
   "devDependencies": {
     "@boozedog/effect-ui-sdk": "workspace:*",
+    "@ui-sdk/core": "0.1.0-beta.18",
     "typescript": "5.9.3"
   },
   "engines": {

@@ -56,7 +56,7 @@ const Definition = Html.component({
                   .children(
                     h.button
                       .attr("type", "button")
-                      .class(face(h.props.daisy, classes.button))
+                      .class(face(h.props.daisy, classes.tab))
                       .children(id)
                   )
               )

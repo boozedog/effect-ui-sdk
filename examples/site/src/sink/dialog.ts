@@ -47,6 +47,10 @@ const Definition = Html.component({
               .class(face(h.props.daisy, classes.button))
               .children(model.open ? "Dialog is open" : "Open dialog")
           ),
+          // The backdrop is a real part, so it has to be rendered. Without it
+          // the page behind the dialog stays lit (native `::backdrop` is
+          // transparent, and UISDK paints `[data-slot=dialog-backdrop]`).
+          Dialog.Backdrop(h),
           Dialog.Content(h)
             .class(face(h.props.daisy, classes.popup))
             .children(

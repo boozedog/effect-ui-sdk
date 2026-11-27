@@ -1,7 +1,15 @@
 /* Page layout only. The component theme is loaded from main.ts:
    `@ui-sdk/core/web.css` by default, or the DaisyUI adapter when
    `style=daisy`. This file does not import Tailwind. Daisy tokens are
-   optional fallbacks, so the default page looks the same when they are unset. */
+   optional fallbacks, so the default page looks the same when they are unset.
+
+   This file is unlayered, so it beats every layer in either theme. Anything
+   that has to follow the daisy theme therefore reads a daisy token first and
+   falls back to the `--page-*` value, which is what the default `web.css` mode
+   gets. The one thing that cannot be done with a fallback is a value that is a
+   *mix* of a daisy token (`--page-muted`): a fallback inside `color-mix` would
+   still mix, and the default page would turn translucent. `src/daisy.css`
+   (only requested with `style=daisy`) overrides that instead. */
 
 :root {
   --page-width: 74rem;
@@ -66,8 +74,11 @@ body {
 }
 
 .panel {
-  border: 1px solid var(--color-base-300, var(--page-rule));
-  border-radius: 0.5rem;
+  /* daisy's card surface when its tokens are present: `--border` width,
+     `--radius-box`, and base-100. The fallbacks keep the default page. */
+  border: var(--border, 1px) solid var(--color-base-300, var(--page-rule));
+  border-radius: var(--radius-box, 0.5rem);
+  background: var(--color-base-100, transparent);
   padding: 1rem 1.125rem;
 }
 
@@ -109,10 +120,14 @@ body {
   margin: 1rem 0 0.75rem;
 }
 
+/* daisy's `.badge` geometry when its tokens are present, and the same rounded
+   hairline chip as before when they are not. */
 .chip {
+  display: inline-flex;
+  align-items: center;
   padding: 0.125rem 0.5rem;
-  border: 1px solid var(--color-base-300, var(--page-rule));
-  border-radius: 999px;
+  border: var(--border, 1px) solid var(--color-base-300, var(--page-rule));
+  border-radius: var(--radius-selector, 999px);
   color: inherit;
   text-decoration: none;
   font-size: 0.8125rem;

@@ -11,5 +11,6 @@ export {
   sliderTrack,
   switchRoot,
   switchThumb,
+  tab,
   tabsList,
 } from "./classes"

@@ -72,7 +72,6 @@ const Definition = Html.component({
             h.button
               .attr("type", "button")
               .attr("aria-label", "Role")
-              .class(face(h.props.daisy, classes.button))
               .children(Select.Value(h))
           ),
           Select.Content(h)
